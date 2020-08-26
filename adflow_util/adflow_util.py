@@ -146,10 +146,11 @@ class ADFLOW_UTIL:
             self.CFDSolver = ADFLOW(options=self.solverOptions)
 
             # create output folder if it does not exist
-            if "outputDirectory" in self.solverOptions:
-                out_dir = self.solverOptions['outputDirectory']
-                if not os.path.exists(out_dir):
-                    os.makedirs(out_dir)
+            if MPI.COMM_WORLD.Get_rank() == 0:
+                if "outputDirectory" in self.solverOptions:
+                    out_dir = self.solverOptions['outputDirectory']
+                    if not os.path.exists(out_dir):
+                        os.makedirs(out_dir)
 
     
     def create_aeroProblem(self):
