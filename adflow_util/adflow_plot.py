@@ -7,6 +7,7 @@ from collections import OrderedDict
 
 # todo:
 # - clean up stuff after adflow has finished
+# - implement mpi support
 
 def str_to_number(s):
     # converts a string to int or float if possible
@@ -132,6 +133,10 @@ class ADFLOW_PLOT():
             adflow_vars_dict[adflow_var] = []
         
         return adflow_vars_dict
+
+def adflow_plot():
+    ap = ADFLOW_PLOT()
+    ap.run()
     
 
 if __name__ == '__main__':
