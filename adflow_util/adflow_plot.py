@@ -56,10 +56,12 @@ class ADFLOW_PLOT():
 
             # print adflowline for testing
             # print('test {}'.format(self.stdout_lines[-1]))
-            plx.clear_plot()
-            plx.clear_terminal()
-            plx.plot(self.adflow_vars['Iter'], self.adflow_vars['Res_rho'])
-            plx.show()
+            if len(self.adflow_vars) > 0:
+                if len(self.adflow_vars['Iter']) > 0:
+                    plx.clear_plot()
+                    plx.clear_terminal()
+                    plx.plot(self.adflow_vars['Iter'], self.adflow_vars['Res_rho'])
+                    plx.show()
         rc = process.poll()
         return rc
     
