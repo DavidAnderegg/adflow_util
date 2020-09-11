@@ -1,4 +1,4 @@
-from adflow_util import ADFLOW_PLOT
+from adflow_util import ADflowData
 from adflow_util.adflow_plot import str_to_number
 from collections import OrderedDict
 import unittest
@@ -19,7 +19,7 @@ class util_func_Tests(unittest.TestCase):
 
 class ADFLOW_PLOT_Tests(unittest.TestCase):
     def setUp(self):
-        self.ap = ADFLOW_PLOT()
+        self.ap = ADflowData()
         self.test_log = [line.rstrip('\n') for line in open('tests/test.log')]
     
 

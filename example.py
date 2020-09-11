@@ -3,8 +3,8 @@ from adflow_util import ADFLOW_UTIL
 name = 'test'
 
 aeroOptions = {
-    'alpha': [1, 2, 3, 1, 2, 3],
-    'reynolds': [3e6, 3e6, 3e6, 5e6, 5e6, 5e6],
+    'alpha': [1, 2],
+    'reynolds': 3e6,
     'mach': 0.15,
     'T': 288,
     
@@ -32,7 +32,7 @@ solverOptions = {
     'MGCycle':'sg',
         
     # ANK
-    'useanksolver' : True,
+    'useanksolver' : False,
     'ankuseturbdadi': False,
     'anknsubiterturb': 5,
     'ankcfllimit': 1e16,
@@ -50,7 +50,7 @@ solverOptions = {
     'outputsurfacefamily': 'wall',
     'surfacevariables': ['cp','vx', 'vy','vz', 'mach'],
     'volumevariables': ['resrho'],
-    'nCycles':10,
+    'nCycles':100,
     'L2Convergence':1e-12,
 }
 
