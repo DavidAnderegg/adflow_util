@@ -17,7 +17,6 @@ import queue
 # - logarithmic scale
 # - label curves
 # - add color
-# - make command switcher more efficient
 # - make sure, linres can be plotted
 
 ON_POSIX = 'posix' in sys.builtin_module_names
@@ -287,16 +286,11 @@ class ADFlowPlot():
     
     def parse_new_command(self):
         temp = self._buffer.get_commited().split()
-        new_command = temp[0]
+        command = temp[0]
         args = temp[1:]
 
-        switcher = dict()
-        for command in self.commands.values():
-            for alias in command[1]:
-                if alias == new_command:
-                # switcher[alias] = command[0]
-                    command[0](args)
-                    break
+        func = self.commands_switcher.get(command)
+        if func is not None: func(args)
     
     def init_commands(self):
         self.commands = {
@@ -347,6 +341,13 @@ class ADFlowPlot():
                             'Sets the height of console window at the top.',
                             'int            height in lines.']
         }
+
+        # prepare command switcher
+        switcher = dict()
+        for command in self.commands.values():
+            for alias in command[1]:
+                switcher[alias] = command[0]
+        self.commands_switcher = switcher
     
     def cmd_help(self, args):
         def get_description(name, command):
