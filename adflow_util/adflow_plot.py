@@ -183,9 +183,12 @@ class ADFlowPlot():
             for line in lines:
                 self._screen.addstr(num_rows-1-n, 0, line)
                 n -= 1
-            
+
             # plot vars
             self.plot(num_cols-3, num_rows - self._n_adflowout - line_count)
+
+            # print labels
+            self.print_labels(num_cols, num_rows)
 
             # print command line at bottom:
             self._screen.addstr(num_rows-1, 0, 'Command: ' + self._buffer.get_active())
@@ -197,7 +200,20 @@ class ADFlowPlot():
             self.cleanup()
             raise
     
-    def plot(self, cols, rows):
+    def print_labels(self, cols, rows):
+        labels = []
+        max_len_label = 0
+        for var, symbol in self._plot_vars.items():
+            label = '{} - {}'.format(symbol, var)
+            labels.append(label)
+            if len(label) > max_len_label:
+                max_len_label = len(label)
+        n = 0
+        for label in labels:
+            self._screen.addstr(self._n_adflowout + 2 + n, cols - max_len_label - 10, label)
+            n += 1
+    
+    def plot(self, width, height):
         if len(self._plot_vars) == 0:
             return
 
@@ -210,8 +226,8 @@ class ADFlowPlot():
 
         # reset plot variables
         plx._vars.__init__()
-        plx._vars.cols_term = cols
-        plx._vars.rows_term = rows
+        plx._vars.cols_term = width
+        plx._vars.rows_term = height
         ylim = None
 
         # only show parts of iteration history
