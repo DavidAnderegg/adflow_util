@@ -15,10 +15,10 @@ import queue
 # - clean up stuff after adflow has finished
 # - implement mpi support
 # - limit adflow output size
-# - create help text
 # - logarithmic scale
 # - label curves
 # - add color
+# - cmd list all available plot vars
 
 ON_POSIX = 'posix' in sys.builtin_module_names
 
@@ -99,9 +99,16 @@ class Message():
         self._type = t
 
     def text(self):
-        if self._type == self.typeNone:
-            return ""
-        return "{}: {}".format(self.prefix[self._type], self._text)
+        lines = self._text.splitlines()
+        if lines == []:
+            return '', 0
+        # else:
+        #     lines = [lines]
+
+        if self._type != self.typeNone:
+            lines[0] = "{}: {}".format(self.prefix[self._type], lines[0])
+        line_count = len(lines)
+        return lines, line_count
 
 
 class ADFlowPlot():
@@ -126,6 +133,7 @@ class ADFlowPlot():
 
 
         # init stuff
+        self.init_commands()
         self._screen = curses.initscr()
         curses.start_color()
         curses.noecho()
@@ -169,14 +177,16 @@ class ADFlowPlot():
                 else:
                     stdout_line = ''
                 self._screen.addstr(self._n_adflowout - n, 0, stdout_line)
+
+            # message lines:
+            lines, line_count = self._message.text()
+            n = line_count
+            for line in lines:
+                self._screen.addstr(num_rows-1-n, 0, line)
+                n -= 1
             
             # plot vars
-            # if len(self._adData.adflow_vars) > 0:
-            self.plot(num_cols-4, num_rows - self._n_adflowout - 3)
-            # self._screen.addstr(self._n_adflowout, 0, plot_str)
-
-            # message line:
-            self._screen.addstr(num_rows-2, 0, self._message.text())
+            self.plot(num_cols-1, num_rows - self._n_adflowout - line_count)
 
             # print command line at bottom:
             self._screen.addstr(num_rows-1, 0, 'Command: ' + self._buffer.get_active())
@@ -210,10 +220,8 @@ class ADFlowPlot():
         if self._n_plot_iterations > 0:
             min_i =  len(x) - min(len(x), self._n_plot_iterations)
         elif self._n_plot_iterations < 0:
-            min_i = min(len(x) - 2, -self._n_plot_iterations)
+            min_i = min(len(x) - 2, -self._n_plot_iterations + 1)
             
-        
-
         # add plot data
         if len(self._adData.adflow_vars) > 0:
             for key, marker in self._plot_vars.items():
@@ -279,30 +287,96 @@ class ADFlowPlot():
     
     def parse_new_command(self):
         temp = self._buffer.get_commited().split()
-        command = temp[0]
+        new_command = temp[0]
         args = temp[1:]
 
-        switcher = {
-            'quit': self.cmd_quit,
-            'q': self.cmd_quit,
+        switcher = dict()
+        for command in self.commands.values():
+            for alias in command[1]:
+                if alias == new_command:
+                # switcher[alias] = command[0]
+                    command[0](args)
+                    break
+    
+    def init_commands(self):
+        self.commands = {
+            'help':         [self.cmd_help,
+                            ['h', 'help'],
+                            'Shows this help text.',
+                            'str            command where further explanaition is wanted.\n' \
+                            'no argument    lists all available commands.'],
+            'clear':        [self.cmd_clear,
+                            ['c', 'clear'],
+                            'Cleares the message window.'],
 
-            'add': self.cmd_add_var,
-            'a': self.cmd_add_var,
+            'quit':         [self.cmd_quit,
+                            ['q', 'quit'],
+                            'Forces the application to close.'],
 
-            'remove': self.cmd_remove_var,
-            'r': self.cmd_remove_var,
+            'add':          [self.cmd_add_var,
+                            ['a', 'add'],
+                            'Adds a new variable to the plot.',
+                            'string         name of variable.'],
+            'remove':       [self.cmd_remove_var,
+                            ['r', 'remove'],
+                            'Removes a variable from the plot.',
+                            'string         name of variable.'],
 
-            'iterations': self.cmd_iterations,
-            'i': self.cmd_iterations,
-
-            'ymin': self.cmd_ymin,
-
-            'ymax': self.cmd_ymax,
-
-            'hlog': self.cmd_hlog,
+            'iterations':   [self.cmd_iterations,
+                            ['i', 'iterations'],
+                            'Changes how many iterations are shown.',
+                            'positive int   shows the last x iterations.\n' \
+                            'negative int   does\'t show the first x iterations\n' \
+                            'no argument    shows all iterations'],
+            'ymin':         [self.cmd_ymin,
+                            ['ymin'],
+                            'Sets the minimum of the y axis.',
+                            'float          sets the minimum to that number.\n' \
+                            'no argument    sets minimum automatically.'],
+            'ymax':         [self.cmd_ymax,
+                            ['ymax'],
+                            'Sets the maximum of the y axis.',
+                            'float          sets the maximum to that number.\n' \
+                            'no argument    sets maximum automatically.'],
+            
+            'hlog':         [self.cmd_hlog,
+                            ['hlog'],
+                            'Sets the height of console window at the top.',
+                            'int            height in lines.']
         }
-        func = switcher.get(command)
-        if func is not None: func(args)
+    
+    def cmd_help(self, args):
+        def get_description(name, command):
+            alias_text = ''
+            for alias in command[1]:
+                alias_text += ' "{}",'.format(alias)
+            alias_text = alias_text[:-1]
+
+            return '{: <12} access with{} \n {: <12}\n\n'.format(
+                name, alias_text, command[2]) 
+
+        # list all commands
+        if len(args) == 0:
+            help_text = ''
+            for name, command in self.commands.items():
+                help_text += get_description(name, command)
+        
+        # list infos to a specific command
+        else: 
+            name = args[0]
+            command = self.commands.get(name)
+            if command == None:
+                return
+            
+            help_text = get_description(name, command)
+            if len(command) > 3:
+                help_text += 'Arguments:\n'
+                help_text += command[3]
+
+        self._message.set(help_text[:-1], Message.typeNone)
+        
+    def cmd_clear(self, args):
+        self._message.set('', Message.typeNone)
 
     def cmd_quit(self, args):
         self._exit = True
@@ -451,6 +525,7 @@ class ADFlowPlot():
 
         self._n_adflowout = value
         self._message.set('Log height was set to "{}"'.format(value), Message.typeSuccess)
+ 
 
 class ADflowData():
     """
