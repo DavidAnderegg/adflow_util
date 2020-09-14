@@ -50,7 +50,7 @@ solverOptions = {
     'outputsurfacefamily': 'wall',
     'surfacevariables': ['cp','vx', 'vy','vz', 'mach'],
     'volumevariables': ['resrho'],
-    'nCycles':100,
+    'nCycles':2000,
     'L2Convergence':1e-12,
 }
 

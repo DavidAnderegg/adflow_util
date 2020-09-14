@@ -426,7 +426,7 @@ def _get_yaxis_ticks(r=0):
     elif r == _vars.rows:
         return _vars.ymax
     else:
-        return r/_vars.rows* (_vars.ymax-_vars.ymin)
+        return r/_vars.rows* (_vars.ymax-_vars.ymin) + _vars.ymin
 
 def _add_xaxis():
     spacing = _vars.spacing[0] * _vars.ticks[0]
@@ -459,7 +459,7 @@ def _get_xaxis_ticks(r=0):
     elif r == _vars.cols:
         return _vars.xmax
     else:
-        return r/_vars.cols* (_vars.xmax-_vars.xmin)
+        return r/_vars.cols* (_vars.xmax-_vars.xmin) + _vars.xmin
 
 def _set_canvas():
     canvas = '\n'
