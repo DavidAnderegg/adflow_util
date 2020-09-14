@@ -17,7 +17,7 @@ import queue
 # - logarithmic scale
 # - label curves
 # - add color
-# - make sure, linres can be plotted
+# - make variables not capital letter dependant
 
 ON_POSIX = 'posix' in sys.builtin_module_names
 
@@ -185,7 +185,7 @@ class ADFlowPlot():
                 n -= 1
             
             # plot vars
-            self.plot(num_cols-1, num_rows - self._n_adflowout - line_count)
+            self.plot(num_cols-3, num_rows - self._n_adflowout - line_count)
 
             # print command line at bottom:
             self._screen.addstr(num_rows-1, 0, 'Command: ' + self._buffer.get_active())
@@ -240,6 +240,12 @@ class ADFlowPlot():
             ylim[0] = self._ymin
         if self._ymax is not None:
             ylim[1] = self._ymax
+
+        # if ymin and max are the same, set it to 1
+        if ylim[0] >= ylim[1]:
+            ylim[1] = ylim[0] + 1
+            ylim[0] = ylim[0] - 1
+            self._message.set('ymax is lower or same as ymin.', Message.typeError)
     
         # prepare plot
         plx.set_xlim([x[min_i], x[-1]])
@@ -424,7 +430,6 @@ class ADFlowPlot():
             self._message.set('"{}" is allready plotting.'.format(value), Message.typeError)
         
         # check if value is plottable
-        
         if value in self._adData.not_plottable_vars:
             self._message.set('"{}" can not be plotet.'.format(value), Message.typeError)
             return
@@ -563,6 +568,7 @@ class ADflowData():
         # this is not in __init__, so it can be called to reset
         self.stdout_lines = []
         self.adflow_vars = OrderedDict()
+        self.adflow_vars_raw = OrderedDict()
         self.ap_name = ''
     
     def start_adflow(self):
@@ -588,7 +594,6 @@ class ADflowData():
             self.stdout_lines.append(line.decode("utf-8").rstrip())
             self.parse_stdout_line()
             return True
-
     
     def create_adflow_command(self):
         command = ''
@@ -627,7 +632,9 @@ class ADflowData():
                 var_desc_string = '#---------'
                 if (self.stdout_lines[-1][0:10] == var_desc_string and 
                     self.stdout_lines[-4][0:10] == var_desc_string):
-                    self.adflow_vars = self.parse_adflow_vars(self.stdout_lines[-3:-1])
+                    adflow_vars = self.parse_adflow_vars(self.stdout_lines[-3:-1])
+                    self.adflow_vars = adflow_vars
+                    self.adflow_vars_raw = adflow_vars
         else:
             # figure out if this is an iteration ouput 
             # (only do this if adflow_vars allready have been parsed)
@@ -648,7 +655,14 @@ class ADflowData():
 
         n = 0
         for adflow_var in self.adflow_vars:
-            self.adflow_vars[adflow_var].append(str_to_number(bits[n]))
+            bit = str_to_number(bits[n])
+            # self.adflow_vars_raw[adflow_var].append(bit)
+            self.adflow_vars[adflow_var].append(bit)
+
+            if isinstance(bit, str):
+                self.adflow_vars[adflow_var][-1] = 0.0
+                
+            # self.adflow_vars[adflow_var].append(str_to_number(bits[n]))
             n += 1
     
     def parse_adflow_vars(self, stdout_lines):
