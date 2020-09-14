@@ -14,11 +14,11 @@ import queue
 # todo:
 # - clean up stuff after adflow has finished
 # - implement mpi support
-# - limit adflow output size
 # - logarithmic scale
 # - label curves
 # - add color
-# - cmd list all available plot vars
+# - make command switcher more efficient
+# - make sure, linres can be plotted
 
 ON_POSIX = 'posix' in sys.builtin_module_names
 
@@ -126,8 +126,8 @@ class ADFlowPlot():
         # user changable vars
         self._exit = False
         self._n_adflowout = 15
-        self._plot_vars = {'C_lift': '*'}
-        self._n_plot_iterations = 50
+        self._plot_vars = {'Res_rho': '*'}
+        self._n_plot_iterations = 0
         self._ymin = None
         self._ymax = None
 
@@ -313,6 +313,9 @@ class ADFlowPlot():
                             ['q', 'quit'],
                             'Forces the application to close.'],
 
+            'list':         [self.cmd_list_var,
+                            ['l', 'list'],
+                            'Lists for plot available variables.'],
             'add':          [self.cmd_add_var,
                             ['a', 'add'],
                             'Adds a new variable to the plot.',
@@ -381,6 +384,23 @@ class ADFlowPlot():
     def cmd_quit(self, args):
         self._exit = True
     
+    def cmd_list_var(self, args):
+        if len(self._adData.adflow_vars) > 0:
+            text = 'Plottable ADflow variables:\n'
+            for var in self._adData.adflow_vars.keys():
+                if var in self._adData.not_plottable_vars:
+                    continue
+                if var in self._plot_vars:
+                    continue
+
+                text += '"{}", '.format(var)
+        
+            text = text[:-2]
+            self._message.set(text, Message.typeNone)
+            return
+
+        self._message.set('No ADflow output detected, can not plot anything.', Message.typeError)
+
     def cmd_add_var(self, args):
         # check how many values there are
         if len(args) == 0:
@@ -403,8 +423,8 @@ class ADFlowPlot():
             self._message.set('"{}" is allready plotting.'.format(value), Message.typeError)
         
         # check if value is plottable
-        not_plottable = ['Iter_Type']
-        if value in not_plottable:
+        
+        if value in self._adData.not_plottable_vars:
             self._message.set('"{}" can not be plotet.'.format(value), Message.typeError)
             return
 
@@ -535,6 +555,7 @@ class ADflowData():
         self.parser = argparse.ArgumentParser(description='Allows to plot ADflow output on the command line')
         self.init_vars()
         self.exit = False
+        self.not_plottable_vars = ['Iter_Type', 'Iter']
         # self._adPlot = ADFlowPlot(self)
 
     def init_vars(self):
