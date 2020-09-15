@@ -192,8 +192,8 @@ class ADFlowPlot():
                 raise
 
             # sleep, but only if queue is empty
-            while (time.time() - t0) < 1/60:
-                if self._adData.iter_adflow():
+            while not self._adData.iter_adflow():
+                if (time.time() - t0) >= 1/60:
                     break
     
     def print_message(self, rows):
