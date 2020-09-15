@@ -9,11 +9,12 @@ import time
 import threading
 import sys
 import queue
+import math
+import numpy as np
 
 # todo:
 # - clean up stuff after adflow has finished
 # - implement mpi support
-# - logarithmic scale
 # - add history log
 # - add page up and down keys for scrolling in adflow output
 # - add arrow up -> last command
@@ -121,6 +122,7 @@ class ADFlowPlot():
         self._message = Message()
         self._markers = ['•', '*', 'x', 'v', 'o']
         self._marker_n = 1
+        self._plot_log = False
 
         # user changable vars
         self._exit = False
@@ -219,7 +221,10 @@ class ADFlowPlot():
         labels = []
         max_len_label = 0
         for var, symbol in self._plot_vars.items():
-            label = '{} - {}'.format(symbol, var)
+            if self._plot_log:
+                label = '{} - log({})'.format(symbol, var)
+            else:
+                label = '{} - {}'.format(symbol, var)
             labels.append(label)
             if len(label) > max_len_label:
                 max_len_label = len(label)
@@ -255,6 +260,10 @@ class ADFlowPlot():
         # add plot data
         for key, marker in self._plot_vars.items():
             y = self._adData.adflow_vars[key]
+
+            if self._plot_log:
+                y = np.log10(np.array(y))
+
             plx.plot(x,y, line_marker=marker)
 
             if ylim is None and len(y) >= 2:
@@ -371,6 +380,9 @@ class ADFlowPlot():
                             'Sets the maximum of the y axis.',
                             'float          sets the maximum to that number.\n' \
                             'no argument    sets maximum automatically.'],
+            'log':          [self.cmd_log,
+                            ['log'],
+                            'Switches between normal and logarithmic scale.'],
             
             'hlog':         [self.cmd_hlog,
                             ['hlog'],
@@ -578,6 +590,14 @@ class ADFlowPlot():
         
         self._ymax = value
         self._message.set('Ymax was set to "{}"'.format(value), Message.typeSuccess)
+
+    def cmd_log(self, args):
+        self._plot_log = not self._plot_log
+
+        if self._plot_log:
+            self._message.set('Showing logarithmic scale.', Message.typeSuccess)
+        else:
+            self._message.set('Showing normal scale.', Message.typeSuccess)
 
     def cmd_hlog(self, args):
         if len(args) == 0:
