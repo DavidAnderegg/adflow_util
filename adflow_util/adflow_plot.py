@@ -14,7 +14,6 @@ import queue
 # - clean up stuff after adflow has finished
 # - implement mpi support
 # - logarithmic scale
-# - add color
 # - make variables not capital letter dependant
 # - add history log
 # - make automatic marker more robust (iteration variable)
@@ -123,12 +122,12 @@ class ADFlowPlot():
         self._adData = ADflowData()
         self._message = Message()
         self._markers = ['•', '*', 'x', 'v', 'o']
-        self._marker_n = 0
+        self._marker_n = 1
 
         # user changable vars
         self._exit = False
         self._n_adflowout = 15
-        self._plot_vars = {'Res_rho': '*'}
+        self._plot_vars = {'Res_rho': self._markers[self._marker_n - 1]}
         self._n_plot_iterations = 0
         self._ymin = None
         self._ymax = None
@@ -451,7 +450,10 @@ class ADFlowPlot():
         if len(args) == 2:
             marker = args[1]
         else:
-            marker = self._markers[len(self._plot_vars) % len(self._markers)]
+            marker = self._markers[self._marker_n]
+            self._marker_n += 1
+            if self._marker_n >= len(self._markers):
+                self._marker_n = 0
 
         # check if value exists
         if not value in self._adData.adflow_vars:
