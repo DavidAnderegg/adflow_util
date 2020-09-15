@@ -15,7 +15,6 @@ import queue
 # - clean up stuff after adflow has finished
 # - implement mpi support
 # - logarithmic scale
-# - label curves
 # - add color
 # - make variables not capital letter dependant
 
@@ -130,7 +129,6 @@ class ADFlowPlot():
         self._ymin = None
         self._ymax = None
 
-
         # init stuff
         self.init_commands()
         self._screen = curses.initscr()
@@ -152,53 +150,63 @@ class ADFlowPlot():
     def run(self):
         self._adData.start_adflow()
         while not self._exit:
-            self.redraw()
+            try: 
+                if self._buffer._has_new_commited:
+                    self.parse_new_command()
+
+                num_rows, num_cols = self._screen.getmaxyx()
+                self._screen.clear()
+
+                # message lines:
+                line_count = self.print_message(num_rows) 
+
+                # print console output at top
+                self.print_adflow_output(num_rows, line_count)
+
+                if len(self._adData.adflow_vars) > 0:
+                    # plot vars
+                    self.plot(num_cols-3, num_rows - self._n_adflowout - line_count)
+
+                    # print labels
+                    self.print_labels(num_cols, num_rows)
+
+                # print command line at bottom:
+                self._screen.addstr(num_rows-1, 0, 'Command: ' + self._buffer.get_active())
+
+                # refresh and key input
+                self._screen.refresh()
+                self.parse_input()
+            except:
+                self.cleanup()
+                raise
 
             # sleep, but only if queue is empty
             t0 = time.time()
             while (time.time() - t0) < 1/60:
                 if self._adData.iter_adflow():
                     break
+    
+    def print_message(self, rows):
+        lines, line_count = self._message.text()
+        n = line_count
+        for line in lines:
+            self._screen.addstr(rows-1-n, 0, line)
+            n -= 1
+        
+        return line_count
+    
+    def print_adflow_output(self, height, line_count):
+        len_output = self._n_adflowout
+        if len(self._adData.adflow_vars) == 0:
+            len_output = height -1 - line_count
 
-    def redraw(self):
-        try: 
-            if self._buffer._has_new_commited:
-                self.parse_new_command()
-
-            num_rows, num_cols = self._screen.getmaxyx()
-            self._screen.clear()
-
-            # print console output at top
-            for n in range(self._n_adflowout, 0, -1):
-                if len(self._adData.stdout_lines) >= n:
-                    stdout_line = self._adData.stdout_lines[-n]#[0:num_cols]
-                    # stdout_line = 'asdf'
-                else:
-                    stdout_line = ''
-                self._screen.addstr(self._n_adflowout - n, 0, stdout_line)
-
-            # message lines:
-            lines, line_count = self._message.text()
-            n = line_count
-            for line in lines:
-                self._screen.addstr(num_rows-1-n, 0, line)
-                n -= 1
-
-            # plot vars
-            self.plot(num_cols-3, num_rows - self._n_adflowout - line_count)
-
-            # print labels
-            self.print_labels(num_cols, num_rows)
-
-            # print command line at bottom:
-            self._screen.addstr(num_rows-1, 0, 'Command: ' + self._buffer.get_active())
-
-            # refresh and key input
-            self._screen.refresh()
-            self.parse_input()
-        except:
-            self.cleanup()
-            raise
+        # print output
+        for n in range(len_output, 0, -1):
+            if len(self._adData.stdout_lines) >= n:
+                stdout_line = self._adData.stdout_lines[-n]
+            else:
+                stdout_line = ''
+            self._screen.addstr(len_output - n, 0, stdout_line)
     
     def print_labels(self, cols, rows):
         labels = []
@@ -238,18 +246,17 @@ class ADFlowPlot():
             min_i = min(len(x) - 2, -self._n_plot_iterations + 1)
             
         # add plot data
-        if len(self._adData.adflow_vars) > 0:
-            for key, marker in self._plot_vars.items():
-                y = self._adData.adflow_vars[key]
-                plx.plot(x,y, line_marker=marker)
+        for key, marker in self._plot_vars.items():
+            y = self._adData.adflow_vars[key]
+            plx.plot(x,y, line_marker=marker)
 
-                if ylim is None and len(y) >= 2:
-                    ylim = [
-                        min(y[min_i:]), 
-                        max(y[min_i:])]
-                else:
-                    ylim = [min(min(y[min_i:]), ylim[0]),
-                            max(max(y[min_i:]), ylim[1])]
+            if ylim is None and len(y) >= 2:
+                ylim = [
+                    min(y[min_i:]), 
+                    max(y[min_i:])]
+            else:
+                ylim = [min(min(y[min_i:]), ylim[0]),
+                        max(max(y[min_i:]), ylim[1])]
         
         # set default min/max
         if self._ymin is not None:
@@ -665,7 +672,6 @@ class ADflowData():
                 # reset stuff so it is ready for the next run
                 self.init_vars()
 
-    
     def parse_adflow_iteration(self, stdout_lines):
         bits = stdout_lines.split()
 
