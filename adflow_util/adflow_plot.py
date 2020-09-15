@@ -14,9 +14,7 @@ import queue
 # - clean up stuff after adflow has finished
 # - implement mpi support
 # - logarithmic scale
-# - make variables not capital letter dependant
 # - add history log
-# - make automatic marker more robust (iteration variable)
 # - add page up and down keys for scrolling in adflow output
 # - add arrow up -> last command
 
@@ -455,8 +453,14 @@ class ADFlowPlot():
             if self._marker_n >= len(self._markers):
                 self._marker_n = 0
 
-        # check if value exists
-        if not value in self._adData.adflow_vars:
+        # check if value exists and get proper case
+        exists = False
+        for var in self._adData.adflow_vars:
+            if value.lower() == var.lower():
+                exists = True
+                value = var
+                break
+        if not exists:
             self._message.set('"{}" ist not a Variable.'.format(value), Message.typeError)
             return
         
@@ -482,9 +486,20 @@ class ADFlowPlot():
         value = args[0]
 
         # check if the var is getting plotted
-        if value not in self._plot_vars:
+        # check if value exists and get proper case
+        exists = False
+        for var in self._plot_vars:
+            if value.lower() == var.lower():
+                exists = True
+                value = var
+                break
+        if not exists:
             self._message.set('"{}" is not active.'.format(value), Message.typeError)
             return
+
+        # if value not in self._plot_vars:
+        #     self._message.set('"{}" is not active.'.format(value), Message.typeError)
+        #     return
         
         # remove key
         del self._plot_vars[value]
