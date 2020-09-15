@@ -13,8 +13,8 @@ import math
 import numpy as np
 
 # todo:
+# - make sure, adflow_plot works with fast adflow iterations
 # - clean up stuff after adflow has finished
-# - implement mpi support
 # - add history log
 # - add page up and down keys for scrolling in adflow output
 # - add arrow up -> last command
@@ -146,7 +146,8 @@ class ADFlowPlot():
         curses.init_pair(3, curses.COLOR_YELLOW, curses.COLOR_BLACK)
     
     def __del__(self):
-        self.cleanup()
+        if self._screen is not None:
+            self.cleanup()
     
     def cleanup(self):
         # shudown stuff
@@ -629,6 +630,7 @@ class ADflowData():
     """
     def __init__(self):
         self.parser = argparse.ArgumentParser(description='Allows to plot ADflow output on the command line')
+        self.parse_args()
         self.init_vars()
         self.exit = False
         self.not_plottable_vars = ['Iter_Type', 'Iter']
@@ -642,14 +644,12 @@ class ADflowData():
         self.ap_name = ''
     
     def start_adflow(self):
-        # init stuff
-        self.parse_args()
-
         # run adflow script
         command = self.create_adflow_command()
         # process = subprocess.Popen(shlex.split(command), stdout=subprocess.PIPE)
         self.adflow_process = subprocess.Popen(
-            shlex.split(command), stdout=subprocess.PIPE, bufsize=1, close_fds=ON_POSIX)
+            shlex.split(command), env=os.environ,
+            stdout=subprocess.PIPE, bufsize=1, close_fds=ON_POSIX)
         self.adflow_queue = queue.Queue()
         self.adflow_thread = threading.Thread(
             target=enqueue_output, args=(self.adflow_process.stdout, self.adflow_queue))
@@ -667,9 +667,20 @@ class ADflowData():
     
     def create_adflow_command(self):
         command = ''
+
+        # mpirun -np
         if self.args.mpi_np is not None:
             command += '{} -np {} '.format(self.args.mpi_command, self.args.mpi_np)
+
+        # mpirun -H
+        if self.args.mpi_H is not None:
+            command += '{} -H {} '.format(self.args.mpi_command, self.args.mpi_np)
+
         command += 'python {}'.format(self.args.inputfile)
+
+        f = open('test.txt', 'w')
+        f.write(command)
+        f.close()
 
         return command
     
@@ -680,10 +691,13 @@ class ADflowData():
             help="The ADflow script to run.")
         
         self.parser.add_argument("-mpi", dest="mpi_command", default="mpirun", 
-            help="The mpi command to use")
+            help='The mpi command to use. Default is "mpirun"')
         
-        self.parser.add_argument("-np", dest="mpi_np", 
-            help="Number of corse to use by mpi")
+        self.parser.add_argument("-np", dest="mpi_np", default=None, 
+            help="Number of corse to use by mpi.")
+
+        self.parser.add_argument("-H", dest="mpi_H", default=None, 
+            help="The hosts to use by mpi.")
 
         self.args = self.parser.parse_args()
 
