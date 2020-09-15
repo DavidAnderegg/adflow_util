@@ -4,7 +4,6 @@ import subprocess
 import shlex
 import adflow_util.plot as plx
 import curses
-# import culour
 from collections import OrderedDict
 import time
 import threading
@@ -17,6 +16,10 @@ import queue
 # - logarithmic scale
 # - add color
 # - make variables not capital letter dependant
+# - add history log
+# - make automatic marker more robust (iteration variable)
+# - add page up and down keys for scrolling in adflow output
+# - add arrow up -> last command
 
 ON_POSIX = 'posix' in sys.builtin_module_names
 
@@ -99,14 +102,14 @@ class Message():
     def text(self):
         lines = self._text.splitlines()
         if lines == []:
-            return '', 0
+            return '', 0, self.typeNone
         # else:
         #     lines = [lines]
 
         if self._type != self.typeNone:
             lines[0] = "{}: {}".format(self.prefix[self._type], lines[0])
         line_count = len(lines)
-        return lines, line_count
+        return lines, line_count, self._type
 
 
 class ADFlowPlot():
@@ -119,7 +122,8 @@ class ADFlowPlot():
         self._buffer = Buffer()
         self._adData = ADflowData()
         self._message = Message()
-        self._markers = ['*', 'x', 'v', 'o']
+        self._markers = ['•', '*', 'x', 'v', 'o']
+        self._marker_n = 0
 
         # user changable vars
         self._exit = False
@@ -136,6 +140,11 @@ class ADFlowPlot():
         curses.noecho()
         self._screen.keypad(True)
         self._screen.nodelay(True)
+
+        # init colors
+        curses.init_pair(1, curses.COLOR_RED, curses.COLOR_BLACK)
+        curses.init_pair(2, curses.COLOR_GREEN, curses.COLOR_BLACK)
+        curses.init_pair(3, curses.COLOR_YELLOW, curses.COLOR_BLACK)
     
     def __del__(self):
         self.cleanup()
@@ -150,6 +159,8 @@ class ADFlowPlot():
     def run(self):
         self._adData.start_adflow()
         while not self._exit:
+            t0 = time.time()
+
             try: 
                 if self._buffer._has_new_commited:
                     self.parse_new_command()
@@ -181,16 +192,15 @@ class ADFlowPlot():
                 raise
 
             # sleep, but only if queue is empty
-            t0 = time.time()
             while (time.time() - t0) < 1/60:
                 if self._adData.iter_adflow():
                     break
     
     def print_message(self, rows):
-        lines, line_count = self._message.text()
+        lines, line_count, _type = self._message.text()
         n = line_count
         for line in lines:
-            self._screen.addstr(rows-1-n, 0, line)
+            self._screen.addstr(rows-1-n, 0, line, curses.color_pair(_type))
             n -= 1
         
         return line_count
@@ -718,9 +728,6 @@ class ADflowData():
 
 
 def adflow_plot():
-    # ap = ADflowData()
-    # ap.run()
-
     aPlot = ADFlowPlot()
     aPlot.run()
     
