@@ -3,7 +3,7 @@ from adflow_util import ADFLOW_UTIL
 name = 'test'
 
 aeroOptions = {
-    'alpha': [1, 2],
+    'alpha': [1, 2, 3, 4],
     'reynolds': 3e6,
     'mach': 0.15,
     'T': 288,
@@ -22,7 +22,6 @@ solverOptions = {
 
     # Physics Parameters
     'equationType':'RANS',
-    'lowspeedpreconditioner': True,
 
     # RK
     'smoother':'runge kutta',
@@ -32,11 +31,7 @@ solverOptions = {
     'MGCycle':'sg',
         
     # ANK
-    'useanksolver' : False,
-    'ankuseturbdadi': False,
-    'anknsubiterturb': 5,
-    'ankcfllimit': 1e16,
-    'ankunsteadylstol': 1.5,
+    'useanksolver' : True,
     
     # NK
     'useNKSolver':False,
@@ -50,8 +45,8 @@ solverOptions = {
     'outputsurfacefamily': 'wall',
     'surfacevariables': ['cp','vx', 'vy','vz', 'mach'],
     'volumevariables': ['resrho'],
-    'nCycles':2000,
-    'L2Convergence':1e-12,
+    'nCycles':10000,
+    'L2Convergence':1e-9,
 }
 
 au = ADFLOW_UTIL(aeroOptions, solverOptions, name)

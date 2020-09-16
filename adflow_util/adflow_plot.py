@@ -13,6 +13,10 @@ import math
 import numpy as np
 import copy
 
+# print ap name
+# test -H option
+# make sure hist works for polar sweeps
+
 ON_POSIX = 'posix' in sys.builtin_module_names
 
 def str_to_number(s):
