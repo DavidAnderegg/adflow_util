@@ -13,7 +13,7 @@ The following script sweeps through a list of Angle of Attacks (the full example
 ``` python
 from adflow_util import ADFLOW_UTIL
 
-name = 'test'
+name = 'n0012_sweep'
 
 aeroOptions = {
     'alpha': [1, 2, 3, 4],
@@ -40,13 +40,22 @@ The dict **aeroOptions** holds all the variables that normally **baseclasses.Aer
 
 This script will generate a file called *test.out* with this content:
 ```
-# ...
+n0012_sweep
+
+Aero Options
+--------------  -----------
+alpha           1, 2, 3, 4
+...
+evalFuncs       cl, cd, cmz
+--------------  -----------
+
+
+
  RESULTS 
   alpha          cd          cl         cmz    totalRes    iterTot
 -------  ----------  ----------  ----------  ----------  ---------
       1  0.01011288  0.11602992  0.00066774  0.00085824        633
-      2  0.01024706  0.23189008  0.00131727  0.00088097        557
-      3  0.01047568  0.34740544  0.00193006  0.00084232        564
+...
       4  0.01080607  0.46238766  0.00248672  0.00089012        541
 ```
 

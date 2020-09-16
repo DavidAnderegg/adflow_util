@@ -1,6 +1,6 @@
 from adflow_util import ADFLOW_UTIL
 
-name = 'test'
+name = 'n0012_sweep'
 
 aeroOptions = {
     'alpha': [1, 2, 3, 4],
