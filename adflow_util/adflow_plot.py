@@ -11,10 +11,10 @@ import sys
 import queue
 import math
 import numpy as np
+import copy
 
 # todo:
 # - clean up stuff after adflow has finished
-# - add history log
 # - add page up and down keys for scrolling in adflow output
 # - add arrow up -> last command
 # - fix flickering screen
@@ -46,6 +46,15 @@ def enqueue_output(out, queue):
         queue.put(line)
     out.close()
 
+def str2bool(v):
+    if isinstance(v, bool):
+       return v
+    if v.lower() in ('yes', 'true', 't', 'y', '1'):
+        return True
+    elif v.lower() in ('no', 'false', 'f', 'n', '0'):
+        return False
+    else:
+        raise argparse.ArgumentTypeError('Boolean value expected.')
 
 class Buffer():
     def __init__(self):
@@ -629,11 +638,13 @@ class ADflowData():
     This class runs ADFlow and processes the data to an array
     """
     def __init__(self):
-        self.parser = argparse.ArgumentParser(description='Allows to plot ADflow output on the command line')
+        self.parser = argparse.ArgumentParser(
+            description='Allows to plot ADflow output on the command line')
         self.parse_args()
         self.init_vars()
         self.exit = False
         self.not_plottable_vars = ['Iter_Type', 'Iter']
+        self.flush_hist_n = 20
         # self._adPlot = ADFlowPlot(self)
 
     def init_vars(self):
@@ -642,6 +653,7 @@ class ADflowData():
         self.adflow_vars = OrderedDict()
         self.adflow_vars_raw = OrderedDict()
         self.ap_name = ''
+        self.hist_file = None
     
     def start_adflow(self):
         # run adflow script
@@ -659,12 +671,19 @@ class ADflowData():
         self.adflow_thread.start()
 
     def iter_adflow(self):
-        try:  line = self.adflow_queue.get_nowait() # or q.get(timeout=.1)
+        try:  
+            line = self.adflow_queue.get_nowait()
         except queue.Empty:
             return False
         else:
+            # parse the line
             self.stdout_lines.append(line.decode("utf-8").rstrip())
             self.parse_stdout_line()
+
+            # write the history File 
+            if self.args.hist:
+                self.write_history()
+
             return True
     
     def create_adflow_command(self):
@@ -681,26 +700,30 @@ class ADflowData():
         # basic python command
         command += '{} {}'.format(sys.executable, self.args.inputfile)
 
-        f = open('test.txt', 'w')
-        f.write(command)
-        f.close()
-
         return command
     
     def parse_args(self):
         # input file
-        self.parser.add_argument("-i", dest="inputfile", required=True,
-        # self.parser.add_argument("-i", dest="inputfile", required=False,
+        self.parser.add_argument("-i", dest="inputfile", required=True, type=str,
             help="The ADflow script to run.")
-        
-        self.parser.add_argument("-mpi", dest="mpi_command", default="mpirun", 
-            help='The mpi command to use. Default is "mpirun"')
-        
-        self.parser.add_argument("-np", dest="mpi_np", default=None, 
-            help="Number of corse to use by mpi.")
 
-        self.parser.add_argument("-H", dest="mpi_H", default=None, 
-            help="The hosts to use by mpi.")
+        # history file
+        self.parser.add_argument("-hist", dest="hist", default=True,  type=str2bool,
+            help="Should be false if no history file should be written.") 
+        self.parser.add_argument("-histFile", dest="histFile", default=None, type=str,
+            help="The .csv file where the convergence history should be written. " \
+                 "Default uses AeroProblem Name.")  
+        self.parser.add_argument('-histDel', dest="histDel", default=';', type=str,
+            help='The delimeter to be used in the history file. (default: ;')
+        
+        # mpi stuff
+        mpigroup = self.parser.add_mutually_exclusive_group()
+        self.parser.add_argument("-mpi", dest="mpi_command", default="mpirun", type=str,
+            help='The mpi command to use. (default: mpirun)')
+        mpigroup.add_argument("-np", dest="mpi_np", default=None, type=int,
+            help="Number of cores to use by mpi.")
+        mpigroup.add_argument("-H", dest="mpi_H", default=None, type=str,
+            help="The hosts to use by mpi.") 
 
         self.args = self.parser.parse_args()
 
@@ -721,7 +744,7 @@ class ADflowData():
                     self.stdout_lines[-4][0:10] == var_desc_string):
                     adflow_vars = self.parse_adflow_vars(self.stdout_lines[-3:-1])
                     self.adflow_vars = adflow_vars
-                    self.adflow_vars_raw = adflow_vars
+                    self.adflow_vars_raw = copy.deepcopy(adflow_vars)
         else:
             # figure out if this is an iteration ouput 
             # (only do this if adflow_vars allready have been parsed)
@@ -733,6 +756,10 @@ class ADflowData():
             if self.stdout_lines[-1] == '#':
                 # save stuff
 
+                # close history file
+                if self.hist_file is not None:
+                    self.hist_file.close()
+
                 # reset stuff so it is ready for the next run
                 self.init_vars()
 
@@ -742,7 +769,7 @@ class ADflowData():
         n = 0
         for adflow_var in self.adflow_vars:
             bit = str_to_number(bits[n])
-            # self.adflow_vars_raw[adflow_var].append(bit)
+            self.adflow_vars_raw[adflow_var].append(bit)
             self.adflow_vars[adflow_var].append(bit)
 
             if isinstance(bit, str):
@@ -779,6 +806,36 @@ class ADflowData():
             adflow_vars_dict[adflow_var] = []
         
         return adflow_vars_dict
+
+    def write_history(self):
+        if len(self.adflow_vars_raw) == 0:
+            return False
+
+        delimeter = str(self.args.histDel)
+
+        # Open File and write header
+        if self.hist_file is None:
+            filename = self.ap_name + '_hist.csv'
+            if self.args.histFile is not None:
+                filename = self.args.histFile
+            self.hist_file = open(filename, 'w')
+
+            header_str = ''
+            for key in self.adflow_vars_raw.keys():
+                header_str += key + delimeter
+            self.hist_file.write(header_str + '\n')
+        
+        # write iteration
+        if len(self.adflow_vars_raw['Iter']) > 0:
+            iter_str = ''
+            for value in self.adflow_vars_raw.values():
+                iter_str += str(value[-1]) + delimeter
+            self.hist_file.write(iter_str + '\n')
+
+            # flush only all xx iterations
+            if len(self.adflow_vars_raw['Iter']) % self.flush_hist_n == 0:
+                self.hist_file.flush()
+        
 
 
 def adflow_plot():
