@@ -52,7 +52,7 @@ This script will generate a file called *test.out* with this content:
 
 
 
-It is also possible to have multiple sweep variables. But all must be the same length. There will be no cross calculation. It was choosen this way to allow for maximal control. 
+It is also possible to have multiple sweep variables. But all must have the same length. There will be no cross calculation. For example, if you set **alpha = [0, 1]** and **reynolds = [5e6, 3e6]** there will be two simulations in total. The first with **alpha = 0**, **reynolds = 5e6** and the second with **alpha = 1**, **reynolds = 3e6**.
 
 
 ## adflow_plot
@@ -64,11 +64,12 @@ If you want to parallelize your ADflow calculation, simply add **-np number_of_c
 The output looks something like this:
 
 ![adflow_plot_output](adflow_plot.PNG)
+
 At the top, a few raw lines from ADflow are shown. In the middle is the ASCII plot and at the bottom is a command line to change some behaviour. Type **h** or **help** to get a list of all commands. type **h a_command** oder **help a_command** to get additional information about this specific command.
 
 
 
-# Instalation
+# Installation
 simply clone this repo with
 ```
 git clone https://github.com/DavidAnderegg/adflow_util.git
@@ -89,4 +90,4 @@ rm adflow_util -R
 # Limitations, Bugs and Ideas
 As for now, this whole suite was only tested with steady simulations. Additionally, some terminals handle input keys differently and it might be possible, that for example ENTER ist not properly recognised. Please file a bug report so i can fix it as soon as possible.
 
-If you find any bugs or you have ideas that i could add, file an issue on github or write me at andv@zhaw.ch.
+If you find any bugs and/or you have ideas that i could add, file an issue on github or write me at andv@zhaw.ch.
