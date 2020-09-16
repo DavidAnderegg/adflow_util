@@ -58,7 +58,7 @@ It is also possible to have multiple sweep variables. But all must be the same l
 ## adflow_plot
 If this package was installed using pip the command **adflow_plot** should be available in your terminal. To use it, simply type **adflow_plot -i yourADflowScript.py**. As this utility reads the stdout stream, it should work with all scripts as long as the ADflow option **printIterations** is **True**. 
 
-If you want to parallelize your ADflow calculation, simply add **-np number_of_cores** oder **-H list_of_nodes**. As a default **mpirun** is used to start mpi. If you have a different installation of mpi, you can change it with **-mpi some_different_mpi_command**. Type **adflow_plot -h** to get a list of all available start options. 
+If you want to parallelize your ADflow calculation, simply add **-np number_of_cores** oder **-H list_of_nodes**. As a default, **mpirun** is used to start mpi. If you have a different installation of mpi, you can change it with **-mpi some_different_mpi_command**. Type **adflow_plot -h** to get a list of all available start options. 
 
 
 The output looks something like this:
@@ -81,3 +81,12 @@ and pip-install it
 ```
 pip install .
 ```
+Now, you can remove the directory
+```
+cd ../
+rm adflow_util -R
+```
+# Limitations, Bugs and Ideas
+As for now, this whole suite was only tested with steady simulations. Additionally, some terminals handle input keys differently and it might be possible, that for example ENTER ist not properly recognised. Please file a bug report so i can fix it as soon as possible.
+
+If you find any bugs or you have ideas that i could add, file an issue on github or write me at andv@zhaw.ch.
