@@ -13,8 +13,6 @@ import math
 import numpy as np
 import copy
 
-# fix log bug
-
 ON_POSIX = 'posix' in sys.builtin_module_names
 
 def str_to_number(s):
@@ -270,12 +268,15 @@ class ADFlowPlot():
         for key, marker in self._plot_vars.items():
             y = self._adData.adflow_vars[key]
 
+            # take log of y values
             if self._plot_log:
-                y = np.ma.log10(np.array(y))
-                y.filled(0)
+                y = np.ma.log10(y)
+                y = y.filled(0.0)
 
+            # set plot data
             plx.plot(x,y, line_marker=marker)
 
+            # calculate automatic limits
             if ylim is None and len(y) >= 2:
                 ylim = [
                     min(y[min_i:]), 
@@ -284,7 +285,7 @@ class ADFlowPlot():
                 ylim = [min(min(y[min_i:]), ylim[0]),
                         max(max(y[min_i:]), ylim[1])]
         
-        # set default min/max
+        # set user limits
         if self._ymin is not None:
             ylim[0] = self._ymin
         if self._ymax is not None:
@@ -392,7 +393,7 @@ class ADFlowPlot():
                             'no argument    sets maximum automatically.'],
             'log':          [self.cmd_log,
                             ['log'],
-                            'Switches between normal and logarithmic scale.'],
+                            'Switches between normal and logarithmic scale. Zero values will be printed as 0.'],
             
             'hlog':         [self.cmd_hlog,
                             ['hlog'],
