@@ -17,6 +17,7 @@ import numpy as np
 # - add history log
 # - add page up and down keys for scrolling in adflow output
 # - add arrow up -> last command
+# - fix flickering screen
 
 ON_POSIX = 'posix' in sys.builtin_module_names
 
