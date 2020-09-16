@@ -88,6 +88,6 @@ cd ../
 rm adflow_util -R
 ```
 # Limitations, Bugs and Ideas
-As for now, this whole suite was only tested with steady simulations. Additionally, some terminals handle input keys differently and it might be possible, that for example ENTER ist not properly recognised. Please file a bug report so i can fix it as soon as possible.
+As for now, this whole suite was only tested with steady simulations. Additionally, some terminals handle input keys differently and it might be possible, that for example ENTER ist not properly recognised. Please file a bug report so I can fix it as soon as possible.
 
-If you find any bugs and/or you have ideas that i could add, file an issue on github or write me at andv@zhaw.ch.
+If you find any bugs and/or you have ideas that I could add, file an issue on github or write me at andv@zhaw.ch.
