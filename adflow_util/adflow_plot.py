@@ -13,10 +13,7 @@ import math
 import numpy as np
 import copy
 
-# todo:
-# - clean up stuff after adflow has finished
-# - add page up and down keys for scrolling in adflow output
-# - add arrow up -> last command
+# fix log bug
 
 ON_POSIX = 'posix' in sys.builtin_module_names
 
@@ -54,6 +51,7 @@ def str2bool(v):
         return False
     else:
         raise argparse.ArgumentTypeError('Boolean value expected.')
+
 
 class Buffer():
     def __init__(self):
@@ -199,11 +197,12 @@ class ADFlowPlot():
                 self.cleanup()
                 raise
 
-            # sleep, but only if queue is empty
-            while not self._adData.read_stdout_line():
-                if (time.time() - t0) >= 1/30:
-                    break
-                time.sleep(0.01)
+            self._adData.read_stdout_lines()
+
+            # sleep for the rest of the frame
+            d_t = 1/24 - (time.time() - t0)
+            if d_t > 0:
+                time.sleep(d_t)
     
     def print_message(self, rows):
         lines, line_count, _type = self._message.text()
@@ -272,7 +271,8 @@ class ADFlowPlot():
             y = self._adData.adflow_vars[key]
 
             if self._plot_log:
-                y = np.log10(np.array(y))
+                y = np.ma.log10(np.array(y))
+                y.filled(0)
 
             plx.plot(x,y, line_marker=marker)
 
@@ -686,21 +686,22 @@ class ADflowData():
 
         return command
 
-    def read_stdout_line(self):
-        try:  
-            line = self.adflow_queue.get_nowait()
-        except queue.Empty:
-            return False
-        else:
-            # parse the line
-            self.stdout_lines.append(line.decode("utf-8").rstrip())
-            self.parse_stdout_line()
+    def read_stdout_lines(self):
+        while True:
+            try:  
+                line = self.adflow_queue.get_nowait()
+            except queue.Empty:
+                break
+            else:
+                # parse the line
+                self.stdout_lines.append(line.decode("utf-8").rstrip())
+                self.parse_stdout_line()
 
-            # write the history File 
-            if self.args.hist:
-                self.write_history()
+                # write the history File 
+                if self.args.hist:
+                    self.write_history()
 
-            return True
+                # return True
     
     def parse_input_args(self):
         # input file
@@ -841,8 +842,3 @@ class ADflowData():
 def adflow_plot():
     aPlot = ADFlowPlot()
     aPlot.main_loop()
-    
-
-# if __name__ == '__main__':
-#     aPlot = ADFlowPlot()
-#     aPlot.run()
