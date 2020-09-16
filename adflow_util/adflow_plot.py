@@ -684,7 +684,7 @@ class ADflowData():
 
         # mpirun -H
         if self.args.mpi_H is not None:
-            command += '{} -H {} '.format(self.args.mpi_command, self.args.mpi_np)
+            command += '{} -H {} '.format(self.args.mpi_command, self.args.mpi_H)
 
         # basic python command
         command += '{} {}'.format(sys.executable, self.args.inputfile)
