@@ -31,7 +31,7 @@ class ADFLOW_PLOT_Tests(unittest.TestCase):
         for sup in supposed:
             supposed_dict[sup] = []
 
-        self.assertEqual(self.ap.parse_adflow_vars(stdout_line), supposed_dict)
+        self.assertEqual(self.ap.parse_adflow_var_names(stdout_line), supposed_dict)
     
 
     # parse_adflow_iteration
@@ -44,9 +44,9 @@ class ADFLOW_PLOT_Tests(unittest.TestCase):
         for sup in supposed:
             supposed_dict[sup] = [supposed_values[n]]
             n += 1
-        self.ap.adflow_vars = self.ap.parse_adflow_vars(stdout_line)
+        self.ap.adflow_vars = self.ap.parse_adflow_var_names(stdout_line)
 
-        self.ap.parse_adflow_iteration(self.test_log[338])
+        self.ap.parse_adflow_var_values(self.test_log[338])
         self.assertEqual(self.ap.adflow_vars, supposed_dict)
 
 

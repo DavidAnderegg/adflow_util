@@ -164,14 +164,14 @@ class ADFlowPlot():
         curses.echo()
         curses.endwin()
     
-    def run(self):
+    def main_loop(self):
         self._adData.start_adflow()
         while not self._exit:
             t0 = time.time()
 
             try: 
                 if self._buffer._has_new_commited:
-                    self.parse_new_command()
+                    self.parse_command()
 
                 num_rows, num_cols = self._screen.getmaxyx()
                 self._screen.clear()
@@ -184,7 +184,7 @@ class ADFlowPlot():
 
                 if len(self._adData.adflow_vars) > 0:
                     # plot vars
-                    self.plot(num_cols-3, num_rows - self._n_adflowout - line_count)
+                    self.print_plot(num_cols-3, num_rows - self._n_adflowout - line_count)
 
                     # print labels
                     self.print_labels(num_cols, num_rows)
@@ -194,13 +194,13 @@ class ADFlowPlot():
 
                 # refresh and key input
                 self._screen.refresh()
-                self.parse_input()
+                self.parse_key_input()
             except:
                 self.cleanup()
                 raise
 
             # sleep, but only if queue is empty
-            while not self._adData.iter_adflow():
+            while not self._adData.read_stdout_line():
                 if (time.time() - t0) >= 1/30:
                     break
                 time.sleep(0.01)
@@ -243,7 +243,7 @@ class ADFlowPlot():
             self._screen.addstr(self._n_adflowout + 2 + n, cols - max_len_label - 10, label)
             n += 1
     
-    def plot(self, width, height):
+    def print_plot(self, width, height):
         if len(self._plot_vars) == 0:
             return
 
@@ -316,7 +316,7 @@ class ADFlowPlot():
                 self._n_adflowout + n, 0, 
                 lines[n])
     
-    def parse_input(self):
+    def parse_key_input(self):
         try: 
             c = self._screen.getch()
             if c == curses.ERR:
@@ -339,7 +339,7 @@ class ADFlowPlot():
         except curses.error:
             pass
     
-    def parse_new_command(self):
+    def parse_command(self):
         temp = self._buffer.get_commited().split()
         command = temp[0]
         args = temp[1:]
@@ -640,7 +640,7 @@ class ADflowData():
     def __init__(self):
         self.parser = argparse.ArgumentParser(
             description='Allows to plot ADflow output on the command line')
-        self.parse_args()
+        self.parse_input_args()
         self.init_vars()
         self.exit = False
         self.not_plottable_vars = ['Iter_Type', 'Iter']
@@ -657,7 +657,7 @@ class ADflowData():
     
     def start_adflow(self):
         # run adflow script
-        command = self.create_adflow_command()
+        command = self.create_adflow_run_command()
         # process = subprocess.Popen(shlex.split(command), stdout=subprocess.PIPE)
         self.adflow_process = subprocess.Popen(
             shlex.split(command), env=os.environ,
@@ -670,7 +670,23 @@ class ADflowData():
         self.adflow_thread.daemon = True # thread dies with the program
         self.adflow_thread.start()
 
-    def iter_adflow(self):
+    def create_adflow_run_command(self):
+        command = ''
+
+        # mpirun -np
+        if self.args.mpi_np is not None:
+            command += '{} -np {} '.format(self.args.mpi_command, self.args.mpi_np)
+
+        # mpirun -H
+        if self.args.mpi_H is not None:
+            command += '{} -H {} '.format(self.args.mpi_command, self.args.mpi_np)
+
+        # basic python command
+        command += '{} {}'.format(sys.executable, self.args.inputfile)
+
+        return command
+
+    def read_stdout_line(self):
         try:  
             line = self.adflow_queue.get_nowait()
         except queue.Empty:
@@ -686,23 +702,7 @@ class ADflowData():
 
             return True
     
-    def create_adflow_command(self):
-        command = ''
-
-        # mpirun -np
-        if self.args.mpi_np is not None:
-            command += '{} -np {} '.format(self.args.mpi_command, self.args.mpi_np)
-
-        # mpirun -H
-        if self.args.mpi_H is not None:
-            command += '{} -H {} '.format(self.args.mpi_command, self.args.mpi_np)
-
-        # basic python command
-        command += '{} {}'.format(sys.executable, self.args.inputfile)
-
-        return command
-    
-    def parse_args(self):
+    def parse_input_args(self):
         # input file
         self.parser.add_argument("-i", dest="inputfile", required=True, type=str,
             help="The ADflow script to run.")
@@ -742,14 +742,14 @@ class ADflowData():
                 var_desc_string = '#---------'
                 if (self.stdout_lines[-1][0:10] == var_desc_string and 
                     self.stdout_lines[-4][0:10] == var_desc_string):
-                    adflow_vars = self.parse_adflow_vars(self.stdout_lines[-3:-1])
+                    adflow_vars = self.parse_adflow_var_names(self.stdout_lines[-3:-1])
                     self.adflow_vars = adflow_vars
                     self.adflow_vars_raw = copy.deepcopy(adflow_vars)
         else:
             # figure out if this is an iteration ouput 
             # (only do this if adflow_vars allready have been parsed)
             if self.stdout_lines[-1][0:5] == '     ':
-                self.parse_adflow_iteration(self.stdout_lines[-1])
+                self.parse_adflow_var_values(self.stdout_lines[-1])
 
             # figure out if the end has been reached
             # only do this adflow_vars has allready been parsed)
@@ -763,7 +763,7 @@ class ADflowData():
                 # reset stuff so it is ready for the next run
                 self.init_vars()
 
-    def parse_adflow_iteration(self, stdout_lines):
+    def parse_adflow_var_values(self, stdout_lines):
         bits = stdout_lines.split()
 
         n = 0
@@ -778,7 +778,7 @@ class ADflowData():
             # self.adflow_vars[adflow_var].append(str_to_number(bits[n]))
             n += 1
     
-    def parse_adflow_vars(self, stdout_lines):
+    def parse_adflow_var_names(self, stdout_lines):
         # split all lines
         var_bits = []
         for line in stdout_lines:
@@ -840,7 +840,7 @@ class ADflowData():
 
 def adflow_plot():
     aPlot = ADFlowPlot()
-    aPlot.run()
+    aPlot.main_loop()
     
 
 # if __name__ == '__main__':
