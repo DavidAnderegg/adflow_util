@@ -13,7 +13,6 @@ import math
 import numpy as np
 
 # todo:
-# - make sure, adflow_plot works with fast adflow iterations
 # - clean up stuff after adflow has finished
 # - add history log
 # - add page up and down keys for scrolling in adflow output
@@ -649,7 +648,9 @@ class ADflowData():
         # process = subprocess.Popen(shlex.split(command), stdout=subprocess.PIPE)
         self.adflow_process = subprocess.Popen(
             shlex.split(command), env=os.environ,
-            stdout=subprocess.PIPE, bufsize=1, close_fds=ON_POSIX)
+            stdout=subprocess.PIPE, stdin=subprocess.PIPE, bufsize=1, close_fds=ON_POSIX)
+        
+        # Pipe thread
         self.adflow_queue = queue.Queue()
         self.adflow_thread = threading.Thread(
             target=enqueue_output, args=(self.adflow_process.stdout, self.adflow_queue))
@@ -676,7 +677,8 @@ class ADflowData():
         if self.args.mpi_H is not None:
             command += '{} -H {} '.format(self.args.mpi_command, self.args.mpi_np)
 
-        command += 'python {}'.format(self.args.inputfile)
+        # basic python command
+        command += '{} {}'.format(sys.executable, self.args.inputfile)
 
         f = open('test.txt', 'w')
         f.write(command)

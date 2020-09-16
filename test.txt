@@ -1,0 +1,71 @@
+MKLROOT: /opt/intel/composer_xe_2013_sp1.1.106/mkl
+MANPATH: /usr/local/spack/opt/spack/linux-centos6-x86_64/gcc-7.4.0/openmpi-3.1.4-6dsv743ocknznxmiygu6be2ikmyr5pix/share/man:/usr/local/tools/opt/spack/linux-centos6-x86_64/gcc-4.4.7/htop-2.2.0-5zicivuobr5f5m3wck6nkz4p6zqihxou/share/man:/opt/sge/man:/opt/intel/composer_xe_2013_sp1.1.106/man/en_US:/opt/intel/composer_xe_2013_sp1.1.106/man/en_US::/opt/c3-4/man:
+XLOCALEDIR: /usr/local/spack/opt/spack/linux-centos6-x86_64/gcc-7.4.0/libx11-1.6.7-56fg7blduo23pcs2tz3nlitqc7zu3ys7/share/X11/locale
+HOSTNAME: srv-clst-t-801.cluster
+INTEL_LICENSE_FILE: /opt/intel/composer_xe_2013_sp1.1.106/licenses:/opt/intel/licenses:/home/./staff/andv/unix/intel/licenses
+TERM: xterm
+SHELL: /bin/bash
+HISTSIZE: 1000
+PETSC_ARCH: arch-linux2-c-debug
+GDBSERVER_MIC: /opt/intel/composer_xe_2013_sp1.1.106/debugger/gdb/target/mic/bin/gdbserver
+SSH_CLIENT: 160.85.92.141 52077 22
+CONDA_SHLVL: 1
+PERL5LIB: /usr/local/spack/opt/spack/linux-centos6-x86_64/gcc-7.4.0/perl-data-dumper-2.173-izdldmuyj45377uhdgw3p335dwjc5eye/lib/perl5
+LIBRARY_PATH: /usr/local/spack/opt/spack/linux-centos6-x86_64/gcc-7.4.0/openmpi-3.1.4-6dsv743ocknznxmiygu6be2ikmyr5pix/lib:/opt/intel/composer_xe_2013_sp1.1.106/compiler/lib/intel64:/opt/intel/composer_xe_2013_sp1.1.106/compiler/lib/intel64:/opt/intel/composer_xe_2013_sp1.1.106/mkl/lib/intel64
+CONDA_PROMPT_MODIFIER: (adflow_2.2) 
+SGE_CELL: default
+QTDIR: /usr/lib64/qt-3.3
+QTINC: /usr/lib64/qt-3.3/include
+MIC_LD_LIBRARY_PATH: /opt/intel/composer_xe_2013_sp1.1.106/compiler/lib/mic:/opt/intel/composer_xe_2013_sp1.1.106/mpirt/lib/mic:/opt/intel/composer_xe_2013_sp1.1.106/compiler/lib/mic:/opt/intel/composer_xe_2013_sp1.1.106/mkl/lib/mic
+SSH_TTY: /dev/pts/8
+USER: andv
+LD_LIBRARY_PATH: /usr/local/spack/opt/spack/linux-centos6-x86_64/gcc-7.4.0/openmpi-3.1.4-6dsv743ocknznxmiygu6be2ikmyr5pix/lib:/opt/intel/composer_xe_2013_sp1.1.106/compiler/lib/intel64:/opt/intel/composer_xe_2013_sp1.1.106/mpirt/lib/intel64:/opt/intel/composer_xe_2013_sp1.1.106/compiler/lib/intel64:/opt/intel/composer_xe_2013_sp1.1.106/mkl/lib/intel64:/home/staff/andv/unix/Software/CGNS-3.3.0/lib:/home/staff/andv/unix/Software/petsc-3.11.4/lib
+LS_COLORS: rs=0:di=01;34:ln=01;36:mh=00:pi=40;33:so=01;35:do=01;35:bd=40;33;01:cd=40;33;01:or=40;31;01:mi=01;05;37;41:su=37;41:sg=30;43:ca=30;41:tw=30;42:ow=34;42:st=37;44:ex=01;32:*.tar=01;31:*.tgz=01;31:*.arj=01;31:*.taz=01;31:*.lzh=01;31:*.lzma=01;31:*.tlz=01;31:*.txz=01;31:*.zip=01;31:*.z=01;31:*.Z=01;31:*.dz=01;31:*.gz=01;31:*.lz=01;31:*.xz=01;31:*.bz2=01;31:*.tbz=01;31:*.tbz2=01;31:*.bz=01;31:*.tz=01;31:*.deb=01;31:*.rpm=01;31:*.jar=01;31:*.rar=01;31:*.ace=01;31:*.zoo=01;31:*.cpio=01;31:*.7z=01;31:*.rz=01;31:*.jpg=01;35:*.jpeg=01;35:*.gif=01;35:*.bmp=01;35:*.pbm=01;35:*.pgm=01;35:*.ppm=01;35:*.tga=01;35:*.xbm=01;35:*.xpm=01;35:*.tif=01;35:*.tiff=01;35:*.png=01;35:*.svg=01;35:*.svgz=01;35:*.mng=01;35:*.pcx=01;35:*.mov=01;35:*.mpg=01;35:*.mpeg=01;35:*.m2v=01;35:*.mkv=01;35:*.ogm=01;35:*.mp4=01;35:*.m4v=01;35:*.mp4v=01;35:*.vob=01;35:*.qt=01;35:*.nuv=01;35:*.wmv=01;35:*.asf=01;35:*.rm=01;35:*.rmvb=01;35:*.flc=01;35:*.avi=01;35:*.fli=01;35:*.flv=01;35:*.gl=01;35:*.dl=01;35:*.xcf=01;35:*.xwd=01;35:*.yuv=01;35:*.cgm=01;35:*.emf=01;35:*.axv=01;35:*.anx=01;35:*.ogv=01;35:*.ogx=01;35:*.aac=01;36:*.au=01;36:*.flac=01;36:*.mid=01;36:*.midi=01;36:*.mka=01;36:*.mp3=01;36:*.mpc=01;36:*.ogg=01;36:*.ra=01;36:*.wav=01;36:*.axa=01;36:*.oga=01;36:*.spx=01;36:*.xspf=01;36:
+CGNS_HOME: /home/staff/andv/unix/Software/CGNS-3.3.0
+CONDA_EXE: /opt/anaconda3/bin/conda
+CPATH: /usr/local/spack/opt/spack/linux-centos6-x86_64/gcc-7.4.0/openmpi-3.1.4-6dsv743ocknznxmiygu6be2ikmyr5pix/include:/opt/intel/composer_xe_2013_sp1.1.106/mkl/include
+_CE_CONDA: 
+SU2_PY: /home/staff/andv/unix/Software/SU2-6.2.0/SU2_PY
+NLSPATH: /opt/intel/composer_xe_2013_sp1.1.106/compiler/lib/intel64/locale/%l_%t/%N:/opt/intel/composer_xe_2013_sp1.1.106/mkl/lib/intel64/locale/%l_%t/%N:/opt/intel/composer_xe_2013_sp1.1.106/debugger/gdb/intel64_mic/py26/share/locale/%l_%t/%N:/opt/intel/composer_xe_2013_sp1.1.106/debugger/gdb/intel64/py26/share/locale/%l_%t/%N:/opt/intel/composer_xe_2013_sp1.1.106/debugger/intel64/locale/%l_%t/%N
+MAIL: /var/spool/mail/andv
+PATH: /usr/local/spack/opt/spack/linux-centos6-x86_64/gcc-7.4.0/openmpi-3.1.4-6dsv743ocknznxmiygu6be2ikmyr5pix/bin:/home/staff/andv/unix/.conda/envs/adflow_2.2/bin:/home/staff/andv/unix/Software/swig-4.0.2/bin:/opt/anaconda3/condabin:/usr/local/spack/opt/spack/linux-centos6-x86_64/gcc-7.4.0/perl-data-dumper-2.173-izdldmuyj45377uhdgw3p335dwjc5eye/bin:/usr/local/spack/opt/spack/linux-centos6-x86_64/gcc-7.4.0/visit-3.0.1-gwak5vkesayhmfdnesnapv7mb56y4jor/bin:/usr/local/tools/opt/spack/linux-centos6-x86_64/gcc-4.4.7/htop-2.2.0-5zicivuobr5f5m3wck6nkz4p6zqihxou/bin:/opt/sge/bin/linux-x64:/usr/lib64/qt-3.3/bin:/opt/intel/composer_xe_2013_sp1.1.106/bin/intel64:/opt/intel/composer_xe_2013_sp1.1.106/mpirt/bin/intel64:/opt/intel/composer_xe_2013_sp1.1.106/debugger/gdb/intel64_mic/py26/bin:/opt/intel/composer_xe_2013_sp1.1.106/debugger/gdb/intel64/py26/bin:/opt/intel/composer_xe_2013_sp1.1.106/bin/intel64:/opt/intel/composer_xe_2013_sp1.1.106/bin/intel64_mic:/opt/intel/composer_xe_2013_sp1.1.106/debugger/gui/intel64:/opt/cluster/admin:/usr/local/bin:/bin:/usr/bin:/usr/local/sbin:/usr/sbin:/sbin:/opt/c3-4:/opt/ibutils/bin:/home/staff/andv/unix/Software/SU2-6.2.0/build.gcc/bin:/home/staff/andv/unix/Software/SU2-6.2.0/SU2_PY:/home/./staff/andv/unix/bin
+CONDA_PREFIX: /home/staff/andv/unix/.conda/envs/adflow_2.2
+PWD: /home/staff/andv/unix/adflow_util
+_LMFILES_: /etc/modulefiles/htop-2.2.0:/etc/modulefiles/visit-3.0.1:/etc/modulefiles/openmpi-3.1.4
+SGE_EXECD_PORT: 6445
+IDB_HOME: /opt/intel/composer_xe_2013_sp1.1.106/bin/intel64
+LANG: en_US.UTF-8
+GDB_CROSS: /opt/intel/composer_xe_2013_sp1.1.106/debugger/gdb/intel64_mic/py26/bin/gdb-mic
+SGE_QMASTER_PORT: 6444
+MODULEPATH: /usr/share/Modules/modulefiles:/etc/modulefiles
+SGE_ROOT: /opt/sge
+LOADEDMODULES: htop-2.2.0:visit-3.0.1:openmpi-3.1.4
+_CE_M: 
+HISTCONTROL: ignoredups
+KRB5CCNAME: FILE:/tmp/krb5cc_12255_2Z2mR6
+OLD_LD_LIBRARY_PATH: /opt/intel/composer_xe_2013_sp1.1.106/compiler/lib/intel64:/opt/intel/composer_xe_2013_sp1.1.106/mpirt/lib/intel64:/opt/intel/composer_xe_2013_sp1.1.106/compiler/lib/intel64:/opt/intel/composer_xe_2013_sp1.1.106/mkl/lib/intel64:/home/staff/andv/unix/Software/CGNS-3.3.0/lib
+SHLVL: 1
+HOME: /home/./staff/andv/unix
+SU2_RUN: /home/staff/andv/unix/Software/SU2-6.2.0/build.gcc/bin
+SU2_MPI_COMMAND: mpirun -n %i %s
+SWIG_LIB: /home/staff/andv/unix/Software/swig-4.0.2/share/swig/4.0.2
+CONDA_PYTHON_EXE: /opt/anaconda3/bin/python
+PYTHONPATH: :/home/staff/andv/unix/Software/SU2-6.2.0/build.gcc/bin
+LOGNAME: andv
+SU2_HOME: /home/staff/andv/unix/Software/SU2-6.2.0
+QTLIB: /usr/lib64/qt-3.3/lib
+CVS_RSH: ssh
+SSH_CONNECTION: 160.85.92.141 52077 160.85.66.12 22
+MODULESHOME: /usr/share/Modules
+PKG_CONFIG_PATH: /usr/local/spack/opt/spack/linux-centos6-x86_64/gcc-7.4.0/openmpi-3.1.4-6dsv743ocknznxmiygu6be2ikmyr5pix/lib/pkgconfig
+CONDA_DEFAULT_ENV: adflow_2.2
+LESSOPEN: ||/usr/bin/lesspipe.sh %s
+CMAKE_PREFIX_PATH: /usr/local/spack/opt/spack/linux-centos6-x86_64/gcc-7.4.0/openmpi-3.1.4-6dsv743ocknznxmiygu6be2ikmyr5pix/:/usr/local/spack/opt/spack/linux-centos6-x86_64/gcc-7.4.0/visit-3.0.1-gwak5vkesayhmfdnesnapv7mb56y4jor/:/usr/local/tools/opt/spack/linux-centos6-x86_64/gcc-4.4.7/htop-2.2.0-5zicivuobr5f5m3wck6nkz4p6zqihxou/
+SGE_CLUSTER_NAME: cluster
+INCLUDE: /opt/intel/composer_xe_2013_sp1.1.106/mkl/include
+PETSC_DIR: /home/staff/andv/unix/Software/petsc-3.11.4
+G_BROKEN_FILENAMES: 1
+BASH_FUNC_module(): () {  eval `/usr/bin/modulecmd bash $*`
+}
+_: /home/staff/andv/unix/.conda/envs/adflow_2.2/bin/adflow_plot
+OLDPWD: /home/./staff/andv/unix
