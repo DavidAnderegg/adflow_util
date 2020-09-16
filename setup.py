@@ -34,7 +34,7 @@ setup(name='adflow_util',
     #     "Operating System :: Linux",
     #     "Programming Language :: Python, Fortran"]
     
-    # entry_points = {
-    # 'console_scripts': ['mytool'=mypkg.myscript:myfunc'],
-    # }
+    entry_points = {
+    'console_scripts': ['adflow_plot=adflow_util:adflow_plot'],
+    }
     )

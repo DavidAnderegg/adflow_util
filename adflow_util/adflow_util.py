@@ -2,14 +2,15 @@ from tabulate import tabulate
 import numpy
 import os
 
-TESTING = False
+# ADFLOW_AVAIL existst so this script can be testet on a windows machine
 try:
     from adflow import ADFLOW
     from baseclasses import *
     from mpi4py import MPI
+    ADFLOW_AVAIL = True
 except ImportError:
-    print('Could not import adflow. Only testing available.')
-    TESTING = True
+    print('Could not import adflow. Only ADFLOW_AVAIL available.')
+    ADFLOW_AVAIL = False
 
 # This values can not be iterated on as they are allowed to be arreys
 is_arraylike = [
@@ -56,7 +57,7 @@ class ADFLOW_UTIL:
                 setattr(self.aeroProblem, ar, self.aeroOptions[ar][n])
         
         # solve
-        if not TESTING:
+        if ADFLOW_AVAIL:
             self.CFDSolver(self.aeroProblem)
 
         # eval Funcs
@@ -89,10 +90,11 @@ class ADFLOW_UTIL:
             data.append(value)
 
         # add solver information
-        header.append('totalRes')
-        data.append(self.CFDSolver.adflow.iteration.totalrfinal)
-        header.append('iterTot')
-        data.append(int(self.CFDSolver.adflow.iteration.itertot))
+        if ADFLOW_AVAIL:
+            header.append('totalRes')
+            data.append(self.CFDSolver.adflow.iteration.totalrfinal)
+            header.append('iterTot')
+            data.append(int(self.CFDSolver.adflow.iteration.itertot))
         
         # only write header if it is the first line
         data_string = tabulate([data], headers=header, floatfmt=".8f") + "\n"
@@ -104,7 +106,7 @@ class ADFLOW_UTIL:
     def eval_funcs(self):
         funcs = {}
 
-        if not TESTING:
+        if ADFLOW_AVAIL:
             self.CFDSolver.evalFunctions(self.aeroProblem, funcs)
         else:
             funcs = {
@@ -141,8 +143,8 @@ class ADFLOW_UTIL:
         return True
 
     def create_solver(self):
-        # only create solver if not testing
-        if not TESTING:
+        # only create solver if not ADFLOW_AVAIL
+        if ADFLOW_AVAIL:
             self.CFDSolver = ADFLOW(options=self.solverOptions)
 
             # create output folder if it does not exist
@@ -156,7 +158,7 @@ class ADFLOW_UTIL:
     def create_aeroProblem(self):
         kwargs = self.get_ap_kwargs()
 
-        if not TESTING:
+        if ADFLOW_AVAIL:
             self.aeroProblem = AeroProblem(name=self.name, **kwargs)
         else:
             self.aeroProblem = type('', (), {})
