@@ -17,7 +17,6 @@ import copy
 # - clean up stuff after adflow has finished
 # - add page up and down keys for scrolling in adflow output
 # - add arrow up -> last command
-# - fix flickering screen
 
 ON_POSIX = 'posix' in sys.builtin_module_names
 
@@ -202,8 +201,9 @@ class ADFlowPlot():
 
             # sleep, but only if queue is empty
             while not self._adData.iter_adflow():
-                if (time.time() - t0) >= 1/60:
+                if (time.time() - t0) >= 1/30:
                     break
+                time.sleep(0.01)
     
     def print_message(self, rows):
         lines, line_count, _type = self._message.text()
