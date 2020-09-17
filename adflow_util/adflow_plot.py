@@ -14,7 +14,6 @@ import numpy as np
 import copy
 
 # print ap name
-# make sure hist works for polar sweeps
 # log as default
 # add indicator which solver is beeing used (solver, linres, stepsize, CFL, gridlevel, iter diff)
 # make sure init error from adflow are beeing shown
@@ -654,21 +653,23 @@ class ADflowData():
         self.not_plottable_vars = ['Iter_Type', 'Iter']
         self.flush_hist_n = 20
 
-        # init functions
-        self.parse_input_args()
-        self.init_vars()
-
         # state vars
         self.stdout_lines = []
         self.has_finished = True
-
-    def init_vars(self):
-        # this is not in __init__, so it can be called to reset
-        
-        self.adflow_vars = OrderedDict()
-        self.adflow_vars_raw = OrderedDict()
         self.ap_name = ''
         self.hist_file = None
+        self.hist_iteration = 0
+        self.adflow_vars = OrderedDict()
+        self.adflow_vars_raw = OrderedDict()
+
+        # init functions
+        self.parse_input_args()
+        # self.init_vars()
+
+    def reset_vars(self):
+        self.adflow_vars = OrderedDict()
+        self.adflow_vars_raw = OrderedDict()
+        self.hist_iteration += 1
     
     def start_adflow(self):
         # run adflow script
@@ -762,7 +763,7 @@ class ADflowData():
                 self.stdout_lines[-2][0:10] == '#  level |' and
                 self.stdout_lines[-1][0:10] == var_desc_string):
                 # reset vars
-                self.init_vars()
+                self.reset_vars()
                 self.has_finished = False
 
                 # parse new vars
@@ -837,7 +838,7 @@ class ADflowData():
 
         # Open File and write header
         if self.hist_file is None:
-            filename = self.ap_name + '_hist.csv'
+            filename = self.ap_name + '_' + str(self.hist_iteration) + '_hist.csv'
             if self.args.histFile is not None:
                 filename = self.args.histFile
             self.hist_file = open(filename, 'w')
@@ -865,7 +866,8 @@ def adflow_plot():
         aPlot = ADFlowPlot()
         aPlot.main_loop()
     except:
-        if aPlot:
-            if aPlot._screen:
-                aPlot.cleanup()
+        try:
+            aPlot.cleanup()
+        except NameError:
+            pass
         raise
