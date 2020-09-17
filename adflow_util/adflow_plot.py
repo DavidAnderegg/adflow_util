@@ -14,8 +14,12 @@ import numpy as np
 import copy
 
 # print ap name
-# test -H option
 # make sure hist works for polar sweeps
+# log as default
+# add indicator which solver is beeing used (solver, linres, stepsize, CFL, gridlevel, iter diff)
+# make sure init error from adflow are beeing shown
+# add support for logfile reading
+# differently colored plots, different symbols for different solvers
 
 ON_POSIX = 'posix' in sys.builtin_module_names
 
@@ -169,35 +173,35 @@ class ADFlowPlot():
         while not self._exit:
             t0 = time.time()
 
-            try: 
-                if self._buffer._has_new_commited:
-                    self.parse_command()
+            # try: 
+            if self._buffer._has_new_commited:
+                self.parse_command()
 
-                num_rows, num_cols = self._screen.getmaxyx()
-                self._screen.clear()
+            num_rows, num_cols = self._screen.getmaxyx()
+            self._screen.clear()
 
-                # message lines:
-                line_count = self.print_message(num_rows) 
+            # message lines:
+            line_count = self.print_message(num_rows) 
 
-                # print console output at top
-                self.print_adflow_output(num_rows, line_count)
+            # print console output at top
+            self.print_adflow_output(num_rows, line_count)
 
-                if len(self._adData.adflow_vars) > 0:
-                    # plot vars
-                    self.print_plot(num_cols-3, num_rows - self._n_adflowout - line_count)
+            if len(self._adData.adflow_vars) > 0:
+                # plot vars
+                self.print_plot(num_cols-3, num_rows - self._n_adflowout - line_count)
 
-                    # print labels
-                    self.print_labels(num_cols, num_rows)
+                # print labels
+                self.print_labels(num_cols, num_rows)
 
-                # print command line at bottom:
-                self._screen.addstr(num_rows-1, 0, 'Command: ' + self._buffer.get_active())
+            # print command line at bottom:
+            self._screen.addstr(num_rows-1, 0, 'Command: ' + self._buffer.get_active())
 
-                # refresh and key input
-                self._screen.refresh()
-                self.parse_key_input()
-            except:
-                self.cleanup()
-                raise
+            # refresh and key input
+            self._screen.refresh()
+            self.parse_key_input()
+            # except:
+            #     self.cleanup()
+            #     raise
 
             self._adData.read_stdout_lines()
 
@@ -645,16 +649,22 @@ class ADflowData():
     def __init__(self):
         self.parser = argparse.ArgumentParser(
             description='Allows to plot ADflow output on the command line')
-        self.parse_input_args()
-        self.init_vars()
-        self.exit = False
+        
+        # options
         self.not_plottable_vars = ['Iter_Type', 'Iter']
         self.flush_hist_n = 20
-        # self._adPlot = ADFlowPlot(self)
+
+        # init functions
+        self.parse_input_args()
+        self.init_vars()
+
+        # state vars
+        self.stdout_lines = []
+        self.has_finished = True
 
     def init_vars(self):
         # this is not in __init__, so it can be called to reset
-        self.stdout_lines = []
+        
         self.adflow_vars = OrderedDict()
         self.adflow_vars_raw = OrderedDict()
         self.ap_name = ''
@@ -705,8 +715,6 @@ class ADflowData():
                 # write the history File 
                 if self.args.hist:
                     self.write_history()
-
-                # return True
     
     def parse_input_args(self):
         # input file
@@ -741,33 +749,41 @@ class ADflowData():
             if self.stdout_lines[-1][0:29] == '|  Switching to Aero Problem:':
                 self.ap_name = self.stdout_lines[-1][29:-2].strip()
 
-        # figure out if the line is a var description 
-        # (only do this if it hasn't been done allready)
-        if len(self.adflow_vars) == 0:
-            if len(self.stdout_lines) > 3:
-                var_desc_string = '#---------'
-                if (self.stdout_lines[-1][0:10] == var_desc_string and 
-                    self.stdout_lines[-4][0:10] == var_desc_string):
-                    adflow_vars = self.parse_adflow_var_names(self.stdout_lines[-3:-1])
-                    self.adflow_vars = adflow_vars
-                    self.adflow_vars_raw = copy.deepcopy(adflow_vars)
-        else:
-            # figure out if this is an iteration ouput 
-            # (only do this if adflow_vars allready have been parsed)
-            if self.stdout_lines[-1][0:5] == '     ':
-                self.parse_adflow_var_values(self.stdout_lines[-1])
+        
+        # if len(self.adflow_vars) == 0:
+        if self.has_finished:
+            if len(self.stdout_lines) <= 3:
+                return
 
-            # figure out if the end has been reached
-            # only do this adflow_vars has allready been parsed)
-            if self.stdout_lines[-1] == '#':
-                # save stuff
-
-                # close history file
-                if self.hist_file is not None:
-                    self.hist_file.close()
-
-                # reset stuff so it is ready for the next run
+            # figure out if the line is a var description 
+            var_desc_string = '#---------'
+            if (self.stdout_lines[-4][0:10] == var_desc_string and 
+                self.stdout_lines[-3][0:10] == '#  Grid  |' and
+                self.stdout_lines[-2][0:10] == '#  level |' and
+                self.stdout_lines[-1][0:10] == var_desc_string):
+                # reset vars
                 self.init_vars()
+                self.has_finished = False
+
+                # parse new vars
+                adflow_vars = self.parse_adflow_var_names(self.stdout_lines[-3:-1])
+                self.adflow_vars = adflow_vars
+                self.adflow_vars_raw = copy.deepcopy(adflow_vars)
+            return
+                    
+        # figure out if this is an iteration ouput 
+        if self.stdout_lines[-1][0:5] == '     ':
+            self.parse_adflow_var_values(self.stdout_lines[-1])
+
+        # figure out if the end has been reached
+        if self.stdout_lines[-1] == '#':
+            # save stuff
+            self.has_finished = True
+
+            # close history file
+            if self.hist_file is not None:
+                self.hist_file.close()
+                self.hist_file = None
 
     def parse_adflow_var_values(self, stdout_lines):
         bits = stdout_lines.split()
@@ -845,5 +861,11 @@ class ADflowData():
 
 
 def adflow_plot():
-    aPlot = ADFlowPlot()
-    aPlot.main_loop()
+    try: 
+        aPlot = ADFlowPlot()
+        aPlot.main_loop()
+    except:
+        if aPlot:
+            if aPlot._screen:
+                aPlot.cleanup()
+        raise

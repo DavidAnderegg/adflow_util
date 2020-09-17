@@ -2,6 +2,8 @@ from tabulate import tabulate
 import numpy
 import os
 
+# automatically write solution when quiting
+
 # ADFLOW_AVAIL existst so this script can be testet on a windows machine
 try:
     from adflow import ADFLOW
@@ -23,7 +25,6 @@ class ADFLOW_UTIL:
         self.solverOptions = solverOptions
         self.name = name
 
-    
     def run(self):
         # init stuff
         self.check_ap_input()
@@ -154,7 +155,6 @@ class ADFLOW_UTIL:
                     if not os.path.exists(out_dir):
                         os.makedirs(out_dir)
 
-    
     def create_aeroProblem(self):
         kwargs = self.get_ap_kwargs()
 
@@ -197,7 +197,6 @@ class ADFLOW_UTIL:
 
             aero_data.append([name, value_str])
         self.file.write(tabulate(aero_data))
-
 
     def __del__(self):
         try:
