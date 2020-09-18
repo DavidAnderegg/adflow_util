@@ -15,7 +15,6 @@ import copy
 
 # print ap name
 # log as default
-# add indicator which solver is beeing used (solver, linres, stepsize, CFL, gridlevel, iter diff)
 # make sure init error from adflow are beeing shown
 # add support for logfile reading
 # differently colored plots, different symbols for different solvers
@@ -192,6 +191,9 @@ class ADFlowPlot():
                 # print labels
                 self.print_labels(num_cols, num_rows)
 
+                # print solver information
+                self.print_solver_info(num_cols)
+
             # print command line at bottom:
             self._screen.addstr(num_rows-1, 0, 'Command: ' + self._buffer.get_active())
 
@@ -244,18 +246,40 @@ class ADFlowPlot():
                 max_len_label = len(label)
         n = 0
         for label in labels:
-            self._screen.addstr(self._n_adflowout + 2 + n, cols - max_len_label - 10, label)
+            self._screen.addstr(self._n_adflowout + 2 + n, cols - max_len_label - 8 - 25, label)
             n += 1
     
+    def print_solver_info(self, cols):
+        if len(self._adData.adflow_vars_raw['Iter']) <= 2:
+            return
+
+        pairs = [
+            ['Grd Lvl',     self._adData.adflow_vars_raw['Grid_level'][-1]],
+            ['Iter Diff',   self._adData.adflow_vars_raw['Iter_Tot'][-1] - self._adData.adflow_vars_raw['Iter_Tot'][-2]],
+            ['IterType',    self._adData.adflow_vars_raw['Iter_Type'][-1]],
+            ['CFL',         self._adData.adflow_vars_raw['CFL'][-1]],
+            ['Step',        self._adData.adflow_vars_raw['Step'][-1]],
+            ['Lin Res',     self._adData.adflow_vars_raw['Lin_Res'][-1]]
+        ]
+
+        info_str = []
+        for pair in pairs:
+            info_str.append('{:10}: {:>5}'.format(pair[0], pair[1]))
+            
+        n = 0
+        for line in info_str:
+            self._screen.addstr(self._n_adflowout + 2 + n, cols - 20 - 8, line)
+            n += 1
+
     def print_plot(self, width, height):
         if len(self._plot_vars) == 0:
             return
 
-        if len(self._adData.adflow_vars) == 0:
-            return
+        # if len(self._adData.adflow_vars) == 0:
+        #     return
 
         x = self._adData.adflow_vars['Iter']
-        if len(x) < 2:
+        if len(x) <= 2:
             return
 
         # reset plot variables
