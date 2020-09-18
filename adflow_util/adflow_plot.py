@@ -185,14 +185,16 @@ class ADFlowPlot():
             self.print_adflow_output(num_rows, line_count)
 
             if len(self._adData.adflow_vars) > 0:
-                # plot vars
-                self.print_plot(num_cols-3, num_rows - self._n_adflowout - line_count)
+                # only plot if at least 2 iterations
+                if len(self._adData.adflow_vars['Iter']) >= 2:
+                    # plot vars
+                    self.print_plot(num_cols-3, num_rows - self._n_adflowout - line_count)
 
-                # print labels
-                self.print_labels(num_cols, num_rows)
+                    # print labels
+                    self.print_labels(num_cols, num_rows)
 
-                # print solver information
-                self.print_solver_info(num_cols)
+                    # print solver information
+                    self.print_solver_info(num_cols)
 
             # print command line at bottom:
             self._screen.addstr(num_rows-1, 0, 'Command: ' + self._buffer.get_active())
@@ -255,9 +257,6 @@ class ADFlowPlot():
             n += 1
     
     def print_solver_info(self, cols):
-        if len(self._adData.adflow_vars_raw['Iter']) <= 2:
-            return
-
         pairs = [
             ['Grd Lvl',     self._adData.adflow_vars_raw['Grid_level'][-1]],
             ['Iter Diff',   self._adData.adflow_vars_raw['Iter_Tot'][-1] - self._adData.adflow_vars_raw['Iter_Tot'][-2]],
@@ -281,8 +280,6 @@ class ADFlowPlot():
             return
 
         x = self._adData.adflow_vars['Iter']
-        if len(x) <= 2:
-            return
 
         # reset plot variables
         plx._vars.__init__()
