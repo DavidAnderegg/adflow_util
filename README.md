@@ -38,7 +38,7 @@ au.run()
 ```
 The dict **aeroOptions** holds all the variables that normally **baseclasses.AeroProblem** would. If one variable is a list, this is considered the sweep variable. All variables except **coefPol, cosCoefFourier, sinCoefFourier, momentAxis, solverOptions, evalFuncs** can be sweeped. 
 
-This script will generate a file called *test.out* with this content:
+This script will generate a file called *n0012_sweep.out* with this content:
 ```
 n0012_sweep
 
@@ -108,3 +108,5 @@ If you find any bugs and/or you have ideas that I could add, file an issue on gi
 
 # Acknowledgements
 This package uses a modified version of **plotext**. The raw package is available at https://github.com/piccolomo/plotext.
+
+The Naca0012 Grid in the example folder is from https://github.com/mdolab/MACH-Aero.
