@@ -18,6 +18,7 @@ import copy
 # make sure init error from adflow are beeing shown
 # add support for logfile reading
 # differently colored plots, different symbols for different solvers
+# fix scale
 
 ON_POSIX = 'posix' in sys.builtin_module_names
 
@@ -130,14 +131,21 @@ class ADFlowPlot():
         self._buffer = Buffer()
         self._adData = ADflowData()
         self._message = Message()
-        self._markers = ['•', '*', 'x', 'v', 'o']
-        self._marker_n = 1
+        self._solvers = {
+            'RK': 'r',
+            'ANK': 'a',
+            'SANK': 's',
+            'CANK': 'c',
+            'CSANK': 'x',
+            'NK': 'n'
+        }
+        self._color_n = 1
         self._plot_log = False
 
         # user changable vars
         self._exit = False
         self._n_adflowout = 15
-        self._plot_vars = {'Res_rho': self._markers[self._marker_n - 1]}
+        self._plot_vars = {'Res_rho': 0}
         self._n_plot_iterations = 0
         self._ymin = None
         self._ymax = None
@@ -154,6 +162,9 @@ class ADFlowPlot():
         curses.init_pair(1, curses.COLOR_RED, curses.COLOR_BLACK)
         curses.init_pair(2, curses.COLOR_GREEN, curses.COLOR_BLACK)
         curses.init_pair(3, curses.COLOR_YELLOW, curses.COLOR_BLACK)
+        curses.init_pair(4, curses.COLOR_BLUE, curses.COLOR_BLACK)
+        curses.init_pair(5, curses.COLOR_MAGENTA, curses.COLOR_BLACK)
+        curses.init_pair(6, curses.COLOR_CYAN, curses.COLOR_BLACK)
     
     def __del__(self):
         if self._screen is not None:
@@ -171,7 +182,6 @@ class ADFlowPlot():
         while not self._exit:
             t0 = time.time()
 
-            # try: 
             if self._buffer._has_new_commited:
                 self.parse_command()
 
@@ -200,9 +210,6 @@ class ADFlowPlot():
             # refresh and key input
             self._screen.refresh()
             self.parse_key_input()
-            # except:
-            #     self.cleanup()
-            #     raise
 
             self._adData.read_stdout_lines()
 
@@ -234,19 +241,27 @@ class ADFlowPlot():
             self._screen.addstr(len_output - n, 0, stdout_line)
     
     def print_labels(self, cols, rows):
+        # prepare print
         labels = []
         max_len_label = 0
-        for var, symbol in self._plot_vars.items():
+        for var, color in self._plot_vars.items():
+            label = [color]
             if self._plot_log:
-                label = '{} - log({})'.format(symbol, var)
+                label.append('• log({})'.format(var))
             else:
-                label = '{} - {}'.format(symbol, var)
+                label.append('• - {}'.format(var))
             labels.append(label)
-            if len(label) > max_len_label:
-                max_len_label = len(label)
+            
+            if len(label[1]) > max_len_label:
+                max_len_label = len(label[1])
         n = 0
+
+        # print
         for label in labels:
-            self._screen.addstr(self._n_adflowout + 2 + n, cols - max_len_label - 8 - 25, label)
+            self._screen.addstr(
+                self._n_adflowout + 2 + n, cols - max_len_label - 8 - 25, 
+                label[1],
+                curses.color_pair(label[0]))
             n += 1
     
     def print_solver_info(self, cols):
@@ -275,9 +290,6 @@ class ADFlowPlot():
         if len(self._plot_vars) == 0:
             return
 
-        # if len(self._adData.adflow_vars) == 0:
-        #     return
-
         x = self._adData.adflow_vars['Iter']
         if len(x) <= 2:
             return
@@ -296,7 +308,7 @@ class ADFlowPlot():
             min_i = min(len(x) - 2, -self._n_plot_iterations + 1)
             
         # add plot data
-        for key, marker in self._plot_vars.items():
+        for key, color in self._plot_vars.items():
             y = self._adData.adflow_vars[key]
 
             # take log of y values
@@ -305,7 +317,7 @@ class ADFlowPlot():
                 y = y.filled(0.0)
 
             # set plot data
-            plx.plot(x,y, line_marker=marker)
+            plx.plot(x,y, line_color=color)
 
             # calculate automatic limits
             if ylim is None and len(y) >= 2:
@@ -340,13 +352,23 @@ class ADFlowPlot():
         # draw plot
         lines = []
         for r in range(len(plx._vars.grid) -1, -1, -1):
-            lines.append(plx._remove_color("".join(plx._vars.grid[r])))
+            lines.append("".join(plx._vars.grid[r]))
 
         len_lines = len(lines)
         for n in range(len_lines):
-            self._screen.addstr(
-                self._n_adflowout + n, 0, 
-                lines[n])
+
+            # plot in proper colors
+            sub_lines = lines[n].split('\033')[1:]
+            x = 0
+            for sub_line in sub_lines:
+                color_str = sub_line.split('m')[0]
+                string = sub_line[len(color_str)+1:]
+
+                self._screen.addstr(
+                    self._n_adflowout + n, x, 
+                    string,
+                    curses.color_pair(int(color_str[1:])))
+                x += len(string)
     
     def parse_key_input(self):
         try: 
@@ -499,13 +521,10 @@ class ADFlowPlot():
             return
         
         value = args[0]
-        if len(args) == 2:
-            marker = args[1]
-        else:
-            marker = self._markers[self._marker_n]
-            self._marker_n += 1
-            if self._marker_n >= len(self._markers):
-                self._marker_n = 0
+        color = self._color_n
+        self._color_n += 1
+        if self._color_n > 6:
+            self._color_n = 0
 
         # check if value exists and get proper case
         exists = False
@@ -527,9 +546,9 @@ class ADFlowPlot():
             self._message.set('"{}" can not be plotet.'.format(value), Message.typeError)
             return
 
-        self._plot_vars[value] = marker
+        self._plot_vars[value] = color
 
-        self._message.set('"{}" now plotting as "{}".'.format(value, marker), Message.typeSuccess)
+        self._message.set('"{}" now plotting as "{}".'.format(value, color), Message.typeSuccess)
     
     def cmd_remove_var(self, args):
         # check if there is an arg

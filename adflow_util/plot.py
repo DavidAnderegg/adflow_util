@@ -345,26 +345,31 @@ def _set_grid():
         if _vars.point[s]:
             _add_to_grid(_vars.x[s], _vars.y[s], _vars.point_marker[s], _vars.point_color[s])
 
-_fg_colors = ['norm', 'black', 'gray', 'red', 'green', 'yellow', 'orange', 'blue', 'violet', 'cyan', 'bold']
-_fg_color_codes = [0, 30, 2, 91, 92, 93, 33, 94, 95, 96, 1]
-_bg_colors = ['norm', 'black', 'gray', 'red', 'green', 'yellow', 'orange', 'blue', 'violet', 'cyan', 'white']
-_bg_color_codes = [28, 40, 100, 41, 42, 103, 43, 44, 45, 106, 47]
+# _fg_colors = ['red', 'green', 'gray', 'red', 'green', 'yellow', 'orange', 'blue', 'violet', 'cyan', 'bold']
+# _fg_color_codes = [0, 30, 2, 91, 92, 93, 33, 94, 95, 96, 1]
+# _bg_colors = ['norm', 'black', 'gray', 'red', 'green', 'yellow', 'orange', 'blue', 'violet', 'cyan', 'white']
+# _bg_color_codes = [28, 40, 100, 41, 42, 103, 43, 44, 45, 106, 47]
     
 # it applies the proper color codes to a string
-def _set_color(text = "", color = "norm", background = "norm"):
-    code='\033['
-    if type(color)==str:
-        for c in range(len(_fg_colors)):
-            if color==_fg_colors[c]:
-                code+=str(_fg_color_codes[c])
-    code+='m'
-    code+='\033['
-    if type(background)==str:
-        for c in range(len(_bg_colors)):
-            if background==_bg_colors[c]:
-                code+=str(_bg_color_codes[c])
-    code+='m'
-    return code+text+'\033[0m'
+# def _set_color(text = "", color = "norm", background = "norm"):
+#     code='\033['
+#     if type(color)==str:
+#         for c in range(len(_fg_colors)):
+#             if color==_fg_colors[c]:
+#                 code+=str(_fg_color_codes[c])
+#     code+='m'
+#     code+='\033['
+#     if type(background)==str:
+#         for c in range(len(_bg_colors)):
+#             if background==_bg_colors[c]:
+#                 code+=str(_bg_color_codes[c])
+#     code+='m'
+#     return code+text+'\033[0m'
+
+def _set_color(text = "", color = 0, background = None):
+    if color == 'norm':
+        color = 0
+    return '\033[' + str(color) + 'm' + text # + '\033[0m'
 
 def _add_to_grid(x, y, marker, color):
     for n in range(len(x)):
