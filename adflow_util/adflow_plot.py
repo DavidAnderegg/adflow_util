@@ -587,12 +587,12 @@ class ADFlowPlot():
             self._message.set('Iterations count must be an integer.', Message.typeError)
             return
 
-        
-
-        # if value < 0:
-        #     self._message.set('Iterations count must be 0 or highter.', Message.typeError)
-        #     return
         value = int(value)
+
+        if value < 2 and value > 0:
+            self._message.set('Iteration limit must at least be 2.', Message.typeError)
+            return
+
         self._n_plot_iterations = value
         if value > 0:
             self._message.set('Showing last {} iterations.'.format(value), Message.typeSuccess)
