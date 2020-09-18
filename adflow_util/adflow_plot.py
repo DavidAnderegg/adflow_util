@@ -16,7 +16,6 @@ import copy
 # print ap name
 # make sure init error from adflow are beeing shown
 # add support for logfile reading
-# remove flickering
 
 ON_POSIX = 'posix' in sys.builtin_module_names
 
@@ -129,12 +128,12 @@ class ADFlowPlot():
         self._buffer = Buffer()
         self._adData = ADflowData()
         self._message = Message()
-        self._color_n = 1
+        self._color_n = 2
 
         # user changable vars
         self._exit = False
         self._n_adflowout = 15
-        self._plot_vars = {'Res_rho': 0}
+        self._plot_vars = {'Res_rho': 1}
         self._n_plot_iterations = 0
         self._ymin = None
         self._ymax = None
@@ -176,7 +175,10 @@ class ADFlowPlot():
                 self.parse_command()
 
             num_rows, num_cols = self._screen.getmaxyx()
-            self._screen.clear()
+            self._screen.erase()
+
+            if len(self._adData.stdout_lines) == 0:
+                self._screen.clear()
 
             # message lines:
             line_count = self.print_message(num_rows) 
@@ -240,7 +242,7 @@ class ADFlowPlot():
             if self._plot_log:
                 label.append('• log({})'.format(var))
             else:
-                label.append('• - {}'.format(var))
+                label.append('• {}'.format(var))
             labels.append(label)
             
             if len(label[1]) > max_len_label:
@@ -511,7 +513,7 @@ class ADFlowPlot():
         color = self._color_n
         self._color_n += 1
         if self._color_n > 6:
-            self._color_n = 0
+            self._color_n = 1
 
         # check if value exists and get proper case
         exists = False
