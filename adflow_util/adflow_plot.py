@@ -17,8 +17,6 @@ import copy
 # log as default
 # make sure init error from adflow are beeing shown
 # add support for logfile reading
-# differently colored plots, different symbols for different solvers
-# fix scale
 
 ON_POSIX = 'posix' in sys.builtin_module_names
 
@@ -131,14 +129,6 @@ class ADFlowPlot():
         self._buffer = Buffer()
         self._adData = ADflowData()
         self._message = Message()
-        self._solvers = {
-            'RK': 'r',
-            'ANK': 'a',
-            'SANK': 's',
-            'CANK': 'c',
-            'CSANK': 'x',
-            'NK': 'n'
-        }
         self._color_n = 1
         self._plot_log = False
 
@@ -306,10 +296,11 @@ class ADFlowPlot():
             min_i =  len(x) - min(len(x), self._n_plot_iterations)
         elif self._n_plot_iterations < 0:
             min_i = min(len(x) - 2, -self._n_plot_iterations + 1)
-            
+        x = x[min_i:]
+
         # add plot data
         for key, color in self._plot_vars.items():
-            y = self._adData.adflow_vars[key]
+            y = self._adData.adflow_vars[key][min_i:]
 
             # take log of y values
             if self._plot_log:
@@ -322,11 +313,11 @@ class ADFlowPlot():
             # calculate automatic limits
             if ylim is None and len(y) >= 2:
                 ylim = [
-                    min(y[min_i:]), 
-                    max(y[min_i:])]
+                    min(y), 
+                    max(y)]
             else:
-                ylim = [min(min(y[min_i:]), ylim[0]),
-                        max(max(y[min_i:]), ylim[1])]
+                ylim = [min(min(y), ylim[0]),
+                        max(max(y), ylim[1])]
         
         # set user limits
         if self._ymin is not None:
@@ -341,7 +332,7 @@ class ADFlowPlot():
             self._message.set('ymax is lower or same as ymin.', Message.typeError)
     
         # prepare plot
-        plx.set_xlim([x[min_i], x[-1]])
+        plx.set_xlim([x[0], x[-1]])
         plx.set_ylim(ylim)
         plx._set_xlim()
         plx._set_ylim()
