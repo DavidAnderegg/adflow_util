@@ -130,7 +130,6 @@ class ADFlowPlot():
         self._adData = ADflowData()
         self._message = Message()
         self._color_n = 1
-        self._plot_log = False
 
         # user changable vars
         self._exit = False
@@ -139,6 +138,7 @@ class ADFlowPlot():
         self._n_plot_iterations = 0
         self._ymin = None
         self._ymax = None
+        self._plot_log = True
 
         # init stuff
         self.init_commands()
