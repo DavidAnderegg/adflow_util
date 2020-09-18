@@ -546,7 +546,7 @@ class ADFlowPlot():
 
         self._plot_vars[value] = color
 
-        self._message.set('"{}" now plotting as "{}".'.format(value, color), Message.typeSuccess)
+        self._message.set('"{}" now plotting.'.format(value), Message.typeSuccess)
     
     def cmd_remove_var(self, args):
         # check if there is an arg

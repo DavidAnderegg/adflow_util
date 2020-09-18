@@ -65,7 +65,7 @@ It is also possible to have multiple sweep variables. But all must have the same
 
 
 ## adflow_plot
-If this package was installed using pip the command **adflow_plot** should be available in your terminal. To use it, simply type **adflow_plot -i yourADflowScript.py**. As this utility reads the stdout stream, it should work with all scripts as long as the ADflow option **printIterations** is **True**. 
+If this package was installed using pip, the command **adflow_plot** should be available in your terminal. To use it, simply type **adflow_plot -i yourADflowScript.py**. As this utility reads the stdout stream, it should work with all scripts as long as the ADflow option **printIterations** is **True**. 
 
 If you want to parallelize your ADflow calculation, simply add **-np number_of_cores** oder **-H list_of_nodes**. As a default, **mpirun** is used to start mpi. If you have a different installation of mpi, you can change it with **-mpi some_different_mpi_command**. Type **adflow_plot -h** to get a list of all available start options. 
 
@@ -74,7 +74,11 @@ The output looks something like this:
 
 ![adflow_plot_output](adflow_plot.PNG)
 
-At the top, a few raw lines from ADflow are shown. In the middle is the ASCII plot and at the bottom is a command line to change some behaviour. Type **h** or **help** to get a list of all commands. type **h a_command** oder **help a_command** to get additional information about this specific command.
+If you want to see the raw ADflow output, you can list it at the top by entering **hlog number_of_lines**.
+
+To close it, type **q** or **quit**.
+
+Type **h** or **help** to get a list of all commands. type **h a_command** oder **help a_command** to get additional information about this specific command.
 
 
 
@@ -100,3 +104,7 @@ rm adflow_util -R
 As for now, this whole suite was only tested with steady simulations. Additionally, some terminals handle input keys differently and it might be possible, that for example ENTER ist not properly recognised. Please file a bug report so I can fix it as soon as possible.
 
 If you find any bugs and/or you have ideas that I could add, file an issue on github or write me at andv@zhaw.ch.
+
+
+# Acknowledgements
+This package uses a modified version of **plotext**. The raw package is available at https://github.com/piccolomo/plotext.
