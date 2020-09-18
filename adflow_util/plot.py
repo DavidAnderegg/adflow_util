@@ -390,7 +390,7 @@ def _get_line(x, y):
         if dy == 0:
             y_line_n = [y[n]] * len(x_line_n)
         else:
-            #y_line_n = _range(y[n], y[n + 1], dy)
+            # y_line_n = _range(y[n], y[n + 1], dy)
             y_line_n = [(x_line_n[i]-x[n])*slope+y[n] for i in range(len(x_line_n))]
         x_line.extend(x_line_n)
         y_line.extend(y_line_n)

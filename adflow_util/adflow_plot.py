@@ -258,9 +258,11 @@ class ADFlowPlot():
             n += 1
     
     def print_solver_info(self, cols):
+        iter_tot = self._adData.adflow_vars_raw['Iter_Tot']
         pairs = [
             ['Grd Lvl',     self._adData.adflow_vars_raw['Grid_level'][-1]],
-            ['Iter Diff',   self._adData.adflow_vars_raw['Iter_Tot'][-1] - self._adData.adflow_vars_raw['Iter_Tot'][-2]],
+            ['IterTot',     iter_tot[-1] if iter_tot[-1] < 1e6 else '{:.1e}'.format(iter_tot[-1])],
+            ['Iter Diff',   iter_tot[-1] - iter_tot[-2]],
             ['IterType',    self._adData.adflow_vars_raw['Iter_Type'][-1]],
             ['CFL',         '{:.1e}'.format(self._adData.adflow_vars_raw['CFL'][-1])],
             ['Step',        self._adData.adflow_vars_raw['Step'][-1]],
