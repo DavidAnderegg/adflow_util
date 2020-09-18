@@ -14,9 +14,9 @@ import numpy as np
 import copy
 
 # print ap name
-# log as default
 # make sure init error from adflow are beeing shown
 # add support for logfile reading
+# remove flickering
 
 ON_POSIX = 'posix' in sys.builtin_module_names
 
@@ -200,7 +200,6 @@ class ADFlowPlot():
             self._screen.addstr(num_rows-1, 0, 'Command: ' + self._buffer.get_active())
 
             # refresh and key input
-            self._screen.refresh()
             self.parse_key_input()
 
             self._adData.read_stdout_lines()
