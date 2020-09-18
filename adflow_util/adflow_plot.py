@@ -13,7 +13,6 @@ import math
 import numpy as np
 import copy
 
-# print ap name
 # make sure init error from adflow are beeing shown
 # add support for logfile reading
 
@@ -132,7 +131,7 @@ class ADFlowPlot():
 
         # user changable vars
         self._exit = False
-        self._n_adflowout = 15
+        self._n_adflowout = 0
         self._plot_vars = {'Res_rho': 1}
         self._n_plot_iterations = 0
         self._ymin = None
@@ -175,8 +174,9 @@ class ADFlowPlot():
                 self.parse_command()
 
             num_rows, num_cols = self._screen.getmaxyx()
-            self._screen.erase()
 
+            # flicker fix. Use erase instead of clear. But clear before first plot
+            self._screen.erase()
             if len(self._adData.stdout_lines) == 0:
                 self._screen.clear()
 
@@ -252,7 +252,7 @@ class ADFlowPlot():
         # print
         for label in labels:
             self._screen.addstr(
-                self._n_adflowout + 2 + n, cols - max_len_label - 8 - 25, 
+                self._n_adflowout + 1 + n, cols - max_len_label - 8 - 25, 
                 label[1],
                 curses.color_pair(label[0]))
             n += 1
@@ -262,18 +262,25 @@ class ADFlowPlot():
             ['Grd Lvl',     self._adData.adflow_vars_raw['Grid_level'][-1]],
             ['Iter Diff',   self._adData.adflow_vars_raw['Iter_Tot'][-1] - self._adData.adflow_vars_raw['Iter_Tot'][-2]],
             ['IterType',    self._adData.adflow_vars_raw['Iter_Type'][-1]],
-            ['CFL',         self._adData.adflow_vars_raw['CFL'][-1]],
+            ['CFL',         '{:.1e}'.format(self._adData.adflow_vars_raw['CFL'][-1])],
             ['Step',        self._adData.adflow_vars_raw['Step'][-1]],
             ['Lin Res',     self._adData.adflow_vars_raw['Lin_Res'][-1]]
         ]
 
         info_str = []
         for pair in pairs:
-            info_str.append('{:10}: {:>5}'.format(pair[0], pair[1]))
+            info_str.append('{:9}: {:>7}'.format(pair[0], pair[1]))
             
+        # print name
+        name = self._adData.ap_name + '_' + str(self._adData.hist_iteration)
+        self._screen.addstr(
+            self._n_adflowout, int((cols - len(name) - 5) / 2), 
+            name)
+        
+        # print info
         n = 0
         for line in info_str:
-            self._screen.addstr(self._n_adflowout + 2 + n, cols - 20 - 8, line)
+            self._screen.addstr(self._n_adflowout + 1 + n, cols - 20 - 7, line)
             n += 1
 
     def print_plot(self, width, height):
