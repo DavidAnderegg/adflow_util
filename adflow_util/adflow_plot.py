@@ -19,7 +19,6 @@ import copy
 # different symbols for different solvers
 # every var has allways the same color
 # plot can 'shine' through solver info
-# fix history file bug
 
 ON_POSIX = 'posix' in sys.builtin_module_names
 
@@ -759,10 +758,6 @@ class ADflowData():
                 # parse the line
                 self.stdout_lines.append(line.decode("utf-8").rstrip())
                 self.parse_stdout_line()
-
-                # write the history File 
-                if self.args.hist:
-                    self.write_history()
     
     def parse_input_args(self, args):
         # input file
@@ -822,6 +817,10 @@ class ADflowData():
         # figure out if this is an iteration ouput 
         if self.stdout_lines[-1][0:5] == '     ':
             self.parse_adflow_var_values(self.stdout_lines[-1])
+
+            # write the history File 
+            if self.args.hist:
+                self.write_history()
 
         # figure out if the end has been reached
         if self.stdout_lines[-1] == '#':
