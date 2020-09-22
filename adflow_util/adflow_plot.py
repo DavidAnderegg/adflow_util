@@ -18,7 +18,6 @@ import copy
 # different symbols for different solvers
 # every var has allways the same color
 # plot can 'shine' through solver info
-# increase framerate
 
 ON_POSIX = 'posix' in sys.builtin_module_names
 
@@ -132,6 +131,7 @@ class ADFlowPlot():
         self._adData = ADflowData()
         self._message = Message()
         self._color_n = 2
+        self._fps = 30
 
         # user changable vars
         self._exit = False
@@ -212,7 +212,7 @@ class ADFlowPlot():
             self._adData.read_stdout_lines()
 
             # sleep for the rest of the frame
-            d_t = 1/24 - (time.time() - t0)
+            d_t = 1/self._fps - (time.time() - t0)
             if d_t > 0:
                 time.sleep(d_t)
     
