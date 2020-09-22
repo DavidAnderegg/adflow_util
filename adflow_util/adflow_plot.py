@@ -15,10 +15,10 @@ import copy
 
 # make sure init error from adflow are beeing shown
 # add support for logfile reading
-# confirm quiting
 # different symbols for different solvers
 # every var has allways the same color
 # plot can 'shine' through solver info
+# increase framerate
 
 ON_POSIX = 'posix' in sys.builtin_module_names
 
@@ -141,6 +141,7 @@ class ADFlowPlot():
         self._ymin = None
         self._ymax = None
         self._plot_log = True
+        self._confirm_quiting = False
 
         # init stuff
         self.init_commands()
@@ -401,6 +402,12 @@ class ADFlowPlot():
         command = temp[0]
         args = temp[1:]
 
+        # confirm quiting
+        if self._confirm_quiting:
+            self.cmd_quit_confirm(command)
+            return
+
+        # execute command
         func = self.commands_switcher.get(command)
         if func is not None: func(args)
     
@@ -498,7 +505,20 @@ class ADFlowPlot():
         self._message.set('', Message.typeNone)
 
     def cmd_quit(self, args):
-        self._exit = True
+        self._message.set('Do you really want to quit?', Message.typeInfo)
+        self._confirm_quiting = True
+
+    def cmd_quit_confirm(self, args):
+        try:
+            answer = str2bool(args)
+        except:
+            answer = False
+
+        if answer:
+            self._exit = True
+        else:
+            self._confirm_quiting = False
+            self._message.set('', Message.typeNone)
     
     def cmd_list_var(self, args):
         if len(self._adData.adflow_vars) > 0:
