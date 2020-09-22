@@ -1,6 +1,7 @@
 from adflow_util import ADflowData
 from adflow_util.adflow_plot import str_to_number
 from collections import OrderedDict
+import sys
 import unittest
 
 class util_func_Tests(unittest.TestCase):
@@ -19,7 +20,7 @@ class util_func_Tests(unittest.TestCase):
 
 class ADFLOW_PLOT_Tests(unittest.TestCase):
     def setUp(self):
-        self.ap = ADflowData()
+        self.ap = ADflowData(args=['-i', 'test.py'])
         self.test_log = [line.rstrip('\n') for line in open('tests/test.log')]
     
 
@@ -45,9 +46,10 @@ class ADFLOW_PLOT_Tests(unittest.TestCase):
             supposed_dict[sup] = [supposed_values[n]]
             n += 1
         self.ap.adflow_vars = self.ap.parse_adflow_var_names(stdout_line)
+        self.ap.adflow_vars_raw = self.ap.parse_adflow_var_names(stdout_line)
 
         self.ap.parse_adflow_var_values(self.test_log[338])
-        self.assertEqual(self.ap.adflow_vars, supposed_dict)
+        self.assertEqual(self.ap.adflow_vars_raw, supposed_dict)
 
 
     # parse_stdout_line
@@ -70,20 +72,5 @@ class ADFLOW_PLOT_Tests(unittest.TestCase):
         
         self.assertEqual(self.ap.ap_name, '010_10.00')
 
-
-    def test_parse_stdout_line_cleanup(self):
-        # simulate first 341 lines of adflow output
-        for n in range(341):
-            self.ap.stdout_lines.append(self.test_log[n])
-            self.ap.parse_stdout_line()        
-        # print(self.ap.adflow_vars)
-
-        # simulate last few lines
-        for n in range(1311, 1370):
-            self.ap.stdout_lines.append(self.test_log[n])
-            self.ap.parse_stdout_line()
-
-        self.assertEqual(self.ap.adflow_vars, dict())
-        self.assertEqual(self.ap.ap_name, '')
         
 

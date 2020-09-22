@@ -20,10 +20,11 @@ is_arraylike = [
 ]
 
 class ADFLOW_UTIL:
-    def __init__(self, aeroOptions, solverOptions, name='default'):
+    def __init__(self, aeroOptions, solverOptions, name='default', reset_ap=False):
         self.aeroOptions = aeroOptions
         self.solverOptions = solverOptions
         self.name = name
+        self.reset_ap = reset_ap
 
     def run(self):
         # init stuff
@@ -38,6 +39,9 @@ class ADFLOW_UTIL:
         # loop through all design points
         if len(arrays) > 0:
             for n in range(len(self.aeroOptions[arrays[0]])):
+                # reset AP
+                if self.reset_ap:
+                    self.create_aeroProblem()
                 self.run_point(n)
         else:
             self.run_point()

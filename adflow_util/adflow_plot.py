@@ -15,6 +15,10 @@ import copy
 
 # make sure init error from adflow are beeing shown
 # add support for logfile reading
+# confirm quiting
+# different symbols for different solvers
+# every var has allways the same color
+# plot can 'shine' through solver info
 
 ON_POSIX = 'posix' in sys.builtin_module_names
 
@@ -687,7 +691,7 @@ class ADflowData():
     """
     This class runs ADFlow and processes the data to an array
     """
-    def __init__(self):
+    def __init__(self, args=None):
         self.parser = argparse.ArgumentParser(
             description='Allows to plot ADflow output on the command line')
         
@@ -705,7 +709,7 @@ class ADflowData():
         self.adflow_vars_raw = OrderedDict()
 
         # init functions
-        self.parse_input_args()
+        self.parse_input_args(args if args is not None else sys.argv[1:])
         # self.init_vars()
 
     def reset_vars(self):
@@ -759,7 +763,7 @@ class ADflowData():
                 if self.args.hist:
                     self.write_history()
     
-    def parse_input_args(self):
+    def parse_input_args(self, args):
         # input file
         self.parser.add_argument("-i", dest="inputfile", required=True, type=str,
             help="The ADflow script to run.")
@@ -782,7 +786,7 @@ class ADflowData():
         mpigroup.add_argument("-H", dest="mpi_H", default=None, type=str,
             help="The hosts to use by mpi.") 
 
-        self.args = self.parser.parse_args()
+        self.args = self.parser.parse_args(args)
 
     def parse_stdout_line(self):
         # parse every stdout line and do the appropriate action
