@@ -19,6 +19,7 @@ import copy
 # different symbols for different solvers
 # every var has allways the same color
 # plot can 'shine' through solver info
+# fix history file bug
 
 ON_POSIX = 'posix' in sys.builtin_module_names
 

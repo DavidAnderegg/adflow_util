@@ -1,6 +1,7 @@
 from adflow_util import ADFLOW_UTIL
 
 name = 'n0012_sweep'
+reset_ap = True
 
 aeroOptions = {
     'alpha': [1, 2, 3, 4],
@@ -29,13 +30,20 @@ solverOptions = {
     'nrkreset':20,
     'CFL':0.8,
     'MGCycle':'sg',
+    'nsubiterturb': 5, 
         
     # ANK
-    'useanksolver' : True,
+    'useanksolver': True,
+    'anklinresmax': 0.1,
+    'anksecondordswitchtol': 1e-3,
+    'ankasmoverlap': 4,
+    "outerPreconIts": 3,
+    'ankcoupledswitchtol': 1e-5, 
+    'ankunsteadylstol': 1.5,
     
     # NK
-    'useNKSolver':False,
-    'nkswitchtol':1e-9,
+    'useNKSolver':True,
+    'nkswitchtol':1e-7,
     
     # General
     'monitorvariables':['resrho', 'resturb', 'cl','cd'],
@@ -46,8 +54,8 @@ solverOptions = {
     'surfacevariables': ['cp','vx', 'vy','vz', 'mach'],
     'volumevariables': ['resrho'],
     'nCycles':10000,
-    'L2Convergence':1e-9,
+    'L2Convergence':1e-12,
 }
 
-au = ADFLOW_UTIL(aeroOptions, solverOptions, name)
+au = ADFLOW_UTIL(aeroOptions, solverOptions, name, reset_ap)
 au.run()
