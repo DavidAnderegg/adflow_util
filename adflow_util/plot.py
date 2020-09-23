@@ -291,8 +291,9 @@ def _set_line(line = None):
     _vars.line.append(_set_var_if_none(line, False))
 
 def _set_line_marker(line_marker = None):
-    line_marker = _set_var_if_none(line_marker, "•")
-    _vars.line_marker.append(line_marker[0])
+    # line_marker = _set_var_if_none(line_marker, "•")
+    # _vars.line_marker.append(line_marker[0])
+    _vars.line_marker.append(line_marker)
 
 def _set_line_color(line_color = None):
     _vars.line_color.append(_set_var_if_none(line_color, "norm"))
@@ -341,30 +342,9 @@ def _set_grid():
     _vars.grid = [[space for c in range(_vars.cols)] for r in range(_vars.rows)]
     for s in range(len(_vars.x)):
         if _vars.line[s]:
-            _add_to_grid(*_get_line(_vars.x[s], _vars.y[s]), _vars.line_marker[s], _vars.line_color[s])
+            _add_to_grid(*_get_line(_vars.x[s], _vars.y[s], _vars.line_marker[s]), _vars.line_color[s])
         if _vars.point[s]:
             _add_to_grid(_vars.x[s], _vars.y[s], _vars.point_marker[s], _vars.point_color[s])
-
-# _fg_colors = ['red', 'green', 'gray', 'red', 'green', 'yellow', 'orange', 'blue', 'violet', 'cyan', 'bold']
-# _fg_color_codes = [0, 30, 2, 91, 92, 93, 33, 94, 95, 96, 1]
-# _bg_colors = ['norm', 'black', 'gray', 'red', 'green', 'yellow', 'orange', 'blue', 'violet', 'cyan', 'white']
-# _bg_color_codes = [28, 40, 100, 41, 42, 103, 43, 44, 45, 106, 47]
-    
-# it applies the proper color codes to a string
-# def _set_color(text = "", color = "norm", background = "norm"):
-#     code='\033['
-#     if type(color)==str:
-#         for c in range(len(_fg_colors)):
-#             if color==_fg_colors[c]:
-#                 code+=str(_fg_color_codes[c])
-#     code+='m'
-#     code+='\033['
-#     if type(background)==str:
-#         for c in range(len(_bg_colors)):
-#             if background==_bg_colors[c]:
-#                 code+=str(_bg_color_codes[c])
-#     code+='m'
-#     return code+text+'\033[0m'
 
 def _set_color(text = "", color = 0, background = None):
     if color == 'norm':
@@ -376,17 +356,19 @@ def _add_to_grid(x, y, marker, color):
         c = int((x[n] - _vars.xmin) / _vars.dx)
         r = int((y[n] - _vars.ymin) / _vars.dy)
         if 0 <= r < _vars.rows and 0 <= c < _vars.cols:
-            _vars.grid[r][c]=_set_color(marker, color, _vars.background)
+            _vars.grid[r][c]=_set_color(marker[n], color, _vars.background)
     return _vars.grid
 
 # it returns all the lines connecting the data points 
-def _get_line(x, y): 
+def _get_line(x, y, markers_raw): 
     x_line = []
     y_line = []
+    markers = []
     for n in range(len(x) - 1):
         slope = 1. * (y[n + 1] - y[n]) / (x[n + 1] - x[n])
         dy = slope * _vars.dx
         x_line_n = _range(x[n], x[n + 1], _vars.dx)
+        markers_n = [markers_raw[n + 1]] * len(x_line_n)
         if dy == 0:
             y_line_n = [y[n]] * len(x_line_n)
         else:
@@ -394,7 +376,8 @@ def _get_line(x, y):
             y_line_n = [(x_line_n[i]-x[n])*slope+y[n] for i in range(len(x_line_n))]
         x_line.extend(x_line_n)
         y_line.extend(y_line_n)
-    return x_line, y_line
+        markers.extend(markers_n)
+    return x_line, y_line, markers
 
 def _range(start, stop, step = 1):
     res=[]

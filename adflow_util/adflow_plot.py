@@ -122,7 +122,7 @@ class Message():
 
 class ADFlowPlot():
     """
-    This Class provides the curse window and plots the data parsed by ADflowData
+    This Class provides the curses window and plots the data parsed by ADflowData
     """
 
     def __init__(self):
@@ -157,6 +157,17 @@ class ADFlowPlot():
         curses.init_pair(4, curses.COLOR_BLUE, curses.COLOR_BLACK)
         curses.init_pair(5, curses.COLOR_MAGENTA, curses.COLOR_BLACK)
         curses.init_pair(6, curses.COLOR_CYAN, curses.COLOR_BLACK)
+
+        # init solver markers
+        self._solver_markers = {
+            'None': '•',
+            'RK': '•',
+            'ANK': 'o',
+            'SANK': '+',
+            'CANK': '×',
+            'CSANK': '¤',
+            'NK': '÷'
+        }
     
     def __del__(self):
         if self._screen is not None:
@@ -310,6 +321,14 @@ class ADFlowPlot():
             min_i = min(len(x) - 2, -self._n_plot_iterations + 1)
         x = x[min_i:]
 
+        # set marker for solver
+        line_marker = []
+        for solver in self._adData.adflow_vars_raw['Iter_Type'][min_i:]:
+            if solver[0] == '*':
+                solver = solver[1:]
+            marker = self._solver_markers[solver]
+            line_marker.append(marker)
+
         # add plot data
         for key, color in self._plot_vars.items():
             y = self._adData.adflow_vars[key][min_i:]
@@ -320,7 +339,7 @@ class ADFlowPlot():
                 y = y.filled(0.0)
 
             # set plot data
-            plx.plot(x,y, line_color=color)
+            plx.plot(x,y, line_color=color, line_marker=line_marker)
 
             # calculate automatic limits
             if ylim is None and len(y) >= 2:
@@ -460,7 +479,11 @@ class ADFlowPlot():
             'hlog':         [self.cmd_hlog,
                             ['hlog'],
                             'Sets the height of console window at the top.',
-                            'int            height in lines.']
+                            'int            height in lines.'],
+
+            'markers': [self.cmd_list_markers,
+                            ['lm', 'markers'],
+                            'Displays the different markers for the solvers.'],
         }
 
         # prepare command switcher
@@ -710,6 +733,14 @@ class ADFlowPlot():
         self._n_adflowout = value
         self._message.set('Log height was set to "{}"'.format(value), Message.typeSuccess)
  
+    def cmd_list_markers(self, args):
+        l_string = ''
+        for solver, marker in self._solver_markers.items():
+            if solver == 'None':
+                continue
+            l_string += '{} {}    '.format(marker, solver)
+        
+        self._message.set(l_string, Message.typeInfo)
 
 class ADflowData():
     """
