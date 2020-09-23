@@ -723,6 +723,11 @@ class ADflowData():
         self.not_plottable_vars = ['Iter_Type', 'Iter']
         self.flush_hist_n = 20
 
+        # adflow process vars
+        self.adflow_process = None
+        self.adflow_queue = None
+        self.adflow_thread = None
+
         # state vars
         self.stdout_lines = []
         self.has_finished = True
@@ -735,6 +740,11 @@ class ADflowData():
         # init functions
         self.parse_input_args(args if args is not None else sys.argv[1:])
         # self.init_vars()
+    
+    def __del__(self):
+        # kill adflow
+        if self.adflow_process is not None:
+            self.adflow_process.kill()
 
     def reset_vars(self):
         self.adflow_vars = OrderedDict()
