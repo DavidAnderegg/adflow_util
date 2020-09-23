@@ -16,8 +16,8 @@ import copy
 # make sure init error from adflow are beeing shown
 # add support for logfile reading
 # different symbols for different solvers
-# every var has allways the same color
 # plot can 'shine' through solver info
+# only redraw if there is something new
 
 ON_POSIX = 'posix' in sys.builtin_module_names
 
@@ -130,7 +130,6 @@ class ADFlowPlot():
         self._buffer = Buffer()
         self._adData = ADflowData()
         self._message = Message()
-        self._color_n = 2
         self._fps = 30
 
         # user changable vars
@@ -544,18 +543,20 @@ class ADFlowPlot():
             return
         
         value = args[0]
-        color = self._color_n
-        self._color_n += 1
-        if self._color_n > 6:
-            self._color_n = 1
 
         # check if value exists and get proper case
         exists = False
+        n_color = 0
         for var in self._adData.adflow_vars:
+            # if var is not plotable, continue
+            if var in self._adData.not_plottable_vars:
+                continue
+            
             if value.lower() == var.lower():
                 exists = True
                 value = var
                 break
+            n_color += 1
         if not exists:
             self._message.set('"{}" ist not a Variable.'.format(value), Message.typeError)
             return
@@ -568,6 +569,9 @@ class ADFlowPlot():
         if value in self._adData.not_plottable_vars:
             self._message.set('"{}" can not be plotet.'.format(value), Message.typeError)
             return
+        
+        # figure out color
+        color = (n_color + 10) % 7 
 
         self._plot_vars[value] = color
 
