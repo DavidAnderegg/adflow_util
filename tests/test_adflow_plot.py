@@ -1,5 +1,6 @@
 from adflow_util import ADflowData
 from adflow_util.adflow_plot import str_to_number
+from adflow_util.adflow_plot import ScreenBuffer
 from collections import OrderedDict
 import sys
 import unittest
@@ -17,6 +18,21 @@ class util_func_Tests(unittest.TestCase):
     
     def test_str_to_number_string(self):
         self.assertEqual(str_to_number('test'), 'test')
+
+class ScreenBuffer_Tests(unittest.TestCase):
+    def setUp(self):
+        self.SB = ScreenBuffer()
+
+    def test_redraw_true(self):
+        # change an attribute to a new name -> redraw should be true
+        # self.SB.set_value('scr_rows', 10)
+        self.SB.scr_rows = 10
+        sb_return = self.SB.redraw
+        self.assertTrue(sb_return)
+
+        # after accessing redraw, it should be false
+        self.assertFalse(self.SB.redraw)
+
 
 class ADFLOW_PLOT_Tests(unittest.TestCase):
     def setUp(self):

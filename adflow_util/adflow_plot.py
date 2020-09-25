@@ -15,9 +15,9 @@ import copy
 
 # make sure init error from adflow are beeing shown
 # add support for logfile reading
-# different symbols for different solvers
 # plot can 'shine' through solver info
 # only redraw if there is something new
+# test usefulness of log x scale
 
 ON_POSIX = 'posix' in sys.builtin_module_names
 
@@ -57,11 +57,24 @@ def str2bool(v):
         raise argparse.ArgumentTypeError('Boolean value expected.')
 
 
-class Buffer():
+class CommandBuffer():
+    """
+        This Class buffers the commands which a user inputs
+    """
     def __init__(self):
         self._active = ''
         self._history = []
         self._has_new_commited = False
+    
+    def __eq__(self, other): 
+        if not isinstance(other, CommandBuffer):
+            # don't attempt to compare against unrelated types
+            return NotImplemented
+
+        # return self.foo == other.foo and self.bar == other.bar
+        # iterate through atributes and compare
+        for attr, value in self.__dict__.items():
+            print(attr, value)
     
     def add(self, c):         
         self._active += c
@@ -85,8 +98,47 @@ class Buffer():
     def get_active(self):
         return self._active
 
+class ScreenBuffer():
+    """
+        This class handles the decision to redraw or not.
+
+        It buffers the last values and returns __redraw = True if something changed. 
+        After accessing __redraw, it is set back to False
+    """
+    __redraw = False
+
+    def __init__(self):
+        self.scr_rows = 0
+        self.scr_cols = 0
+        self.adflow_stdout_len = 0
+        self.adflow_iter_len = 0
+        self.message = Message()
+        self.command = CommandBuffer()
+    
+    def __setattr__(self, instance, value):
+        is_value = getattr(self, instance, None)
+        super(ScreenBuffer, self).__setattr__(instance, value)
+
+        if '__redraw' in instance:
+            print('returning')
+            return
+
+        if is_value != value:
+            self.__redraw = True
+    
+    @property
+    def redraw(self):
+        if not self.__redraw:
+            return False
+
+        self.__redraw = False
+        return True
+    
 
 class Message():
+    """
+        This Class handles the message at the bottom of the window.
+    """
     typeNone = 0
     typeError = 1
     typeSuccess = 2
@@ -122,12 +174,13 @@ class Message():
 
 class ADFlowPlot():
     """
-    This Class provides the curses window and plots the data parsed by ADflowData
+    This Class provides the curses window and plots the data parsed by ADflowData.
     """
 
     def __init__(self):
         self._screen = None
-        self._buffer = Buffer()
+        self._command_buffer = CommandBuffer()
+        self._screen_buffer = ScreenBuffer()
         self._adData = ADflowData()
         self._message = Message()
         self._fps = 30
@@ -185,36 +238,53 @@ class ADFlowPlot():
         while not self._exit:
             t0 = time.time()
 
-            if self._buffer._has_new_commited:
+            if self._command_buffer._has_new_commited:
                 self.parse_command()
 
             num_rows, num_cols = self._screen.getmaxyx()
 
-            # flicker fix. Use erase instead of clear. But clear before first plot
-            self._screen.erase()
-            if len(self._adData.stdout_lines) == 0:
-                self._screen.clear()
-
-            # message lines:
-            line_count = self.print_message(num_rows) 
-
-            # print console output at top
-            self.print_adflow_output(num_rows, line_count)
-
+            # update buffer with new values to get decision to redraw
+            self._screen_buffer.scr_cols = num_cols
+            self._screen_buffer.scr_rows = num_rows
+            self._screen_buffer.message = self._message
+            self._screen_buffer.command = self._command_buffer
+            self._screen_buffer.adflow_stdout_len = len(self._adData.stdout_lines)
             if len(self._adData.adflow_vars) > 0:
-                # only plot if at least 2 iterations
-                if len(self._adData.adflow_vars['Iter']) >= 2:
-                    # plot vars
-                    self.print_plot(num_cols-3, num_rows - self._n_adflowout - line_count)
+                self._screen_buffer.adflow_iter_len = len(self._adData.adflow_vars['Iter'])
 
-                    # print labels
-                    self.print_labels(num_cols, num_rows)
+            # redraw if something has changed
+            if self._screen_buffer.redraw:
 
-                    # print solver information
-                    self.print_solver_info(num_cols)
+                # flicker fix. Use erase instead of clear. But clear before first plot
+                self._screen.erase()
+                if len(self._adData.stdout_lines) == 0:
+                    self._screen.clear()
 
-            # print command line at bottom:
-            self._screen.addstr(num_rows-1, 0, 'Command: ' + self._buffer.get_active())
+                # message lines:
+                line_count = self.print_message(num_rows) 
+
+                # print console output at top
+                self.print_adflow_output(num_rows, line_count)
+
+                if len(self._adData.adflow_vars) > 0:
+                    adflow_iter_len = len(self._adData.adflow_vars['Iter'])
+                    
+                    # only plot if at least 2 iterations and new data available
+                    if adflow_iter_len >= 2:
+                        # plot vars
+                        self.print_plot(num_cols-3, num_rows - self._n_adflowout - line_count)
+
+                        # print labels
+                        self.print_labels(num_cols, num_rows)
+
+                        # print solver information
+                        self.print_solver_info(num_cols)
+
+                    # update buffer
+                    self._screen_buffer.adflow_iter_len = adflow_iter_len
+
+                # print command line at bottom:
+                self._screen.addstr(num_rows-1, 0, 'Command: ' + self._command_buffer.get_active())
 
             # refresh and key input
             self.parse_key_input()
@@ -401,22 +471,22 @@ class ADFlowPlot():
             if isinstance(c, int):
                 
                 switcher = {
-                    curses.KEY_BACKSPACE:   self._buffer.remove,
-                    8:                      self._buffer.remove,
-                    127:                    self._buffer.remove,
+                    curses.KEY_BACKSPACE:   self._command_buffer.remove,
+                    8:                      self._command_buffer.remove,
+                    127:                    self._command_buffer.remove,
 
-                    curses.KEY_ENTER:       self._buffer.commit,
-                    10:                     self._buffer.commit,
+                    curses.KEY_ENTER:       self._command_buffer.commit,
+                    10:                     self._command_buffer.commit,
                 }
                 func = switcher.get(c)
                 if func is not None: func()
                 if c > 31 and c < 127:
-                    self._buffer.add(chr(c))
+                    self._command_buffer.add(chr(c))
         except curses.error:
             pass
     
     def parse_command(self):
-        temp = self._buffer.get_commited().split()
+        temp = self._command_buffer.get_commited().split()
         command = temp[0]
         args = temp[1:]
 
