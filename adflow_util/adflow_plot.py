@@ -238,7 +238,8 @@ class ADFlowPlot():
             'SANK': '+',
             'CANK': '×',
             'CSANK': '¤',
-            'NK': '÷'
+            'NK': '÷',
+            'preCon': 'X'   # PreConditioner Marker
         }
     
     def __del__(self):
@@ -412,9 +413,13 @@ class ADFlowPlot():
         # set marker for solver
         line_marker = []
         for solver in self.adData.adflow_vars_raw['Iter_Type'][min_i:]:
+            pc_marker = None
             if solver[0] == '*':
                 solver = solver[1:]
+                pc_marker = self._solver_markers['preCon']
             marker = self._solver_markers[solver]
+            if pc_marker is not None:
+                marker = pc_marker + marker
             line_marker.append(marker)
 
         # add plot data

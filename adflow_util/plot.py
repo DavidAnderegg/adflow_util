@@ -368,7 +368,17 @@ def _get_line(x, y, markers_raw):
         slope = 1. * (y[n + 1] - y[n]) / (x[n + 1] - x[n])
         dy = slope * _vars.dx
         x_line_n = _range(x[n], x[n + 1], _vars.dx)
-        markers_n = [markers_raw[n + 1]] * len(x_line_n)
+
+        # prepare marker
+        marker = markers_raw[n + 1]
+        pc_marker = None
+        if len(marker) > 1:
+            pc_marker = marker[0]
+            marker = marker[1]
+        markers_n = [marker] * len(x_line_n)
+        if pc_marker is not None:
+            markers_n[0] = pc_marker
+        
         if dy == 0:
             y_line_n = [y[n]] * len(x_line_n)
         else:
