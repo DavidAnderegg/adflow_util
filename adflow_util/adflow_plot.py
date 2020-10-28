@@ -13,12 +13,6 @@ import math
 import numpy as np
 import copy
 
-# make sure init error from adflow are beeing shown
-# add support for logfile reading
-# plot can 'shine' through solver info
-# only redraw if there is something new
-# test usefulness of log x scale
-
 ON_POSIX = 'posix' in sys.builtin_module_names
 
 def str_to_number(s):
@@ -58,6 +52,9 @@ def str2bool(v):
 
 
 class AttrComparable():
+
+    __attr_changed = False
+
     def __init__(self):
         self.a = 1
         self.b = 2
@@ -75,6 +72,24 @@ class AttrComparable():
                 similar = False
         
         return similar
+
+    def __setattr__(self, instance, value):
+        is_value = getattr(self, instance, None)
+        super(AttrComparable, self).__setattr__(instance, value)
+
+        if '__attr_changed' in instance:
+            return
+
+        if not self.__attr_changed:
+            if not is_value == value:
+                self.__attr_changed = True
+    
+    def _has_attr_changed(self):
+        if not self.__attr_changed:
+            return False
+
+        self.__attr_changed = False
+        return True
 
 
 class CommandBuffer(AttrComparable):
@@ -115,34 +130,45 @@ class ScreenBuffer(AttrComparable):
         It buffers the last values and returns __redraw = True if something changed. 
         After accessing __redraw, it is set back to False
     """
-    __redraw = False
+    # __attr_changed = False
 
     def __init__(self):
-        self.scr_rows = 0
-        self.scr_cols = 0
-        self.adflow_stdout_len = 0
-        self.adflow_iter_len = 0
+        # super(AttrComparable, self).__init__()
+        # self.scr_rows = 0
+        # self.scr_cols = 0
+        # self.adflow_stdout_len = 0
+        # self.adflow_iter_len = 0
         self.message = Message()
         self.command = CommandBuffer()
     
-    def __setattr__(self, instance, value):
-        is_value = getattr(self, instance, None)
-        super(ScreenBuffer, self).__setattr__(instance, value)
+    # def __setattr__(self, instance, value):
+    #     is_value = getattr(self, instance, None)
+    #     super(ScreenBuffer, self).__setattr__(instance, value)
 
-        if '__redraw' in instance:
-            return
+    #     if '__attr_changed' in instance:
+    #         return
 
-        if not self.__redraw:
-            if not is_value == value:
-                self.__redraw = True
+    #     if not self.__attr_changed:
+    #         if not is_value == value:
+    #             self.__attr_changed = True
+
+        # print(instance)
     
     @property
     def redraw(self):
-        if not self.__redraw:
-            return False
+        # if not self.__attr_changed:
+        #     return False
 
-        self.__redraw = False
-        return True
+        # self.__attr_changed = False
+        # return True
+        redraw = False
+        check_objects = [self, self.message, self.command]
+        for obj in check_objects:
+            # if obj.__has_attr_changed():
+            if obj._has_attr_changed():
+                redraw = True
+                break
+        return redraw
     
 
 class Message(AttrComparable):
@@ -263,7 +289,7 @@ class ADFlowPlot():
             #     self.screenBuffer.adflow_iter_len = len(self.adData.adflow_vars['Iter'])
 
             # redraw if something has changed
-            print(self.screenBuffer.redraw)
+            # print(self.screenBuffer.redraw)
             if self.screenBuffer.redraw:
                 print('redrawing')
                 self.draw(rows, cols)

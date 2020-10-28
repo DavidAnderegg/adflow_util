@@ -44,7 +44,7 @@ class ScreenBuffer_Tests(unittest.TestCase):
 
         # message.set('test2', Message.typeInfo)
         # sb.message = message
-        sb.message.set('test2', Message.typeError)
+        message.set('test2', Message.typeError)
         self.assertTrue(sb.redraw)
     
     def test_redraw_command_true(self):
@@ -56,7 +56,9 @@ class ScreenBuffer_Tests(unittest.TestCase):
         command = CommandBuffer()
         command.add('d')
         sb.command = command
+        self.assertTrue(sb.redraw)
 
+        command.add('d')
         self.assertTrue(sb.redraw)
     
     def test__eq__True(self):
@@ -72,7 +74,7 @@ class ScreenBuffer_Tests(unittest.TestCase):
 
         self.assertFalse(sb1 == sb2)
 
-class AttrComparable_Test(unittest.TestCase):
+class AttrComparable_Tests(unittest.TestCase):
     def test__eq__True(self):
         b1 = AttrComparable()
         b2 = AttrComparable()
@@ -85,6 +87,16 @@ class AttrComparable_Test(unittest.TestCase):
         b2.a = 4
 
         self.assertFalse(b1 == b2)
+    
+    def test__has_attr_changed(self):
+        b = AttrComparable()
+        b.a = 1
+
+        self.assertTrue(b._has_attr_changed())
+        self.assertFalse(b._has_attr_changed())
+
+        b.a = 2
+        self.assertTrue(b._has_attr_changed())
 
 
 
