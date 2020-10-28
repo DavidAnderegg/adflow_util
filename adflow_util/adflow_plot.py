@@ -60,9 +60,9 @@ class AttrComparable():
         self.b = 2
     
     def __eq__(self, other): 
-        if not isinstance(other, AttrComparable):
-            # don't attempt to compare against unrelated types
-            return NotImplemented
+        # if not isinstance(other, AttrComparable):
+        #     # don't attempt to compare against unrelated types
+        #     return NotImplemented
 
         # iterate through atributes and compare
         similar = True
