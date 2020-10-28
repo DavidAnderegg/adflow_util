@@ -15,7 +15,7 @@ import copy
 
 ON_POSIX = 'posix' in sys.builtin_module_names
 
-def str_to_number(s):
+def str2number(s):
     # converts a string to int or float if possible
     # if it is neither, it returns the string itself
 
@@ -313,7 +313,12 @@ class ADFlowPlot():
                 # print solver information
                 self.print_solver_info(cols)
 
+                # print marker information
                 self.print_markers(cols, rows)
+
+                # print finished message
+                if self.adData.has_finished:
+                    self.print_finished_message(cols, rows)
 
         # print command line at bottom:
         self.screen.addstr(rows-1, 0, self.commandBuffer.get_active())
@@ -405,6 +410,22 @@ class ADFlowPlot():
         for line in info_str:
             self.screen.addstr(self._n_adflowout + 1 + n, cols - 20 - 7, line)
             n += 1
+    
+    def print_finished_message(self, cols, rows):
+        if self.adData.has_finished_total_call_time is None:
+            return
+        
+        if self.adData.has_finished_total_func_time is None:
+            return
+
+        time = self.adData.has_finished_total_call_time + self.adData.has_finished_total_func_time
+
+        text = 'ADflow has finished in {} seconds.'.format(time)
+
+        y = int(rows/2)
+        x = int((cols - len(text)) / 2)
+
+        self.screen.addstr( y, x, text, curses.color_pair(1))
 
     def print_plot(self, width, height):
         if len(self._plot_vars) == 0:
@@ -440,7 +461,8 @@ class ADFlowPlot():
             if solver not in solvers_in_use:
                 solvers_in_use.append(solver)
             if pc_marker is not None:
-                solvers_in_use.append('preCon')
+                if 'preCon' not in solvers_in_use:
+                    solvers_in_use.append('preCon')
             
             # pc marker
             if pc_marker is not None:
@@ -869,6 +891,8 @@ class ADflowData():
         # state vars
         self.stdout_lines = []
         self.has_finished = True
+        self.has_finished_total_call_time = None
+        self.has_finished_total_func_time = None
         self.ap_name = ''
         self.hist_file = None
         self.hist_iteration = 0
@@ -979,12 +1003,14 @@ class ADflowData():
                 # reset vars
                 self.reset_vars()
                 self.has_finished = False
+                self.has_finished_total_call_time = None
+                self.has_finished_total_func_time = None
 
                 # parse new vars
                 adflow_vars = self.parse_adflow_var_names(self.stdout_lines[-3:-1])
                 self.adflow_vars = adflow_vars
                 self.adflow_vars_raw = copy.deepcopy(adflow_vars)
-            return
+            # return
                     
         # figure out if this is an iteration ouput 
         if self.stdout_lines[-1][0:5] == '     ':
@@ -1004,6 +1030,17 @@ class ADflowData():
                 self.hist_file.close()
                 self.hist_file = None
 
+        
+        # if adflow has finished, figure out how long it took
+        if self.has_finished:
+            if self.stdout_lines[-1][0:17] == '| Total Call Time':
+                tmp1 = self.stdout_lines[-1].split(':')[1]
+                self.has_finished_total_call_time = str2number(tmp1.split()[0])
+            
+            if self.stdout_lines[-1][0:32] == '| Total Function Evaluation Time':
+                tmp1 = self.stdout_lines[-1].split(':')[1]
+                self.has_finished_total_func_time = str2number(tmp1.split()[0])
+
     def parse_adflow_var_values(self, stdout_lines):
         bits = stdout_lines.split()
 
@@ -1012,7 +1049,7 @@ class ADflowData():
             if adflow_var == 'relRes':
                 continue
 
-            bit = str_to_number(bits[n])
+            bit = str2number(bits[n])
             self.adflow_vars_raw[adflow_var].append(bit)
             self.adflow_vars[adflow_var].append(bit)
 

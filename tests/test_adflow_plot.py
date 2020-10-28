@@ -7,16 +7,16 @@ import unittest
 class util_func_Tests(unittest.TestCase):
 
     def test_str_to_number_pos_int(self):
-        self.assertEqual(str_to_number('1'), 1)
+        self.assertEqual(str2number('1'), 1)
     
     def test_str_to_number_neg_int(self):
-        self.assertEqual(str_to_number('-3'), -3)
+        self.assertEqual(str2number('-3'), -3)
     
     def test_str_to_number_float(self):
-        self.assertEqual(str_to_number('-1.34'), -1.34)
+        self.assertEqual(str2number('-1.34'), -1.34)
     
     def test_str_to_number_string(self):
-        self.assertEqual(str_to_number('test'), 'test')
+        self.assertEqual(str2number('test'), 'test')
 
 class ScreenBuffer_Tests(unittest.TestCase):
     # def setUp(self):
@@ -161,6 +161,22 @@ class ADFLOW_PLOT_Tests(unittest.TestCase):
             self.ap.parse_stdout_line()
         
         self.assertEqual(self.ap.ap_name, '010_10.00')
+
+    def test_parse_stdout_line_total_call_time(self):
+        self.ap.stdout_lines = self.test_log[1300:1354]
+        # print(self.ap.stdout_lines[-1])
+        self.ap.has_finished = True
+        self.ap.parse_stdout_line()
+
+        self.assertEqual(self.ap.has_finished_total_call_time, 582.610)
+    
+    def test_parse_stdout_line_total_func_time(self):
+        self.ap.stdout_lines = self.test_log[1300:1365]
+        # print(self.ap.stdout_lines[-1])
+        self.ap.has_finished = True
+        self.ap.parse_stdout_line()
+
+        self.assertEqual(self.ap.has_finished_total_func_time, 0.003)
 
         
 
