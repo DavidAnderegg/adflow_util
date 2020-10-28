@@ -1,5 +1,5 @@
 from adflow_util import ADflowData
-from adflow_util.adflow_plot import str_to_number
+from adflow_util.adflow_plot import *
 from collections import OrderedDict
 import sys
 import unittest
@@ -17,6 +17,96 @@ class util_func_Tests(unittest.TestCase):
     
     def test_str_to_number_string(self):
         self.assertEqual(str_to_number('test'), 'test')
+
+class ScreenBuffer_Tests(unittest.TestCase):
+    # def setUp(self):
+    #     self.SB = ScreenBuffer()
+
+    def test_redraw_true(self):
+        sb = ScreenBuffer()
+        # change an attribute to a new name -> redraw should be true
+        sb.scr_rows = 10
+        sb_return = sb.redraw
+        self.assertTrue(sb_return)
+
+        # after accessing redraw, it should be false
+        self.assertFalse(sb.redraw)
+    
+    def test_redraw_message_true(self):
+        sb = ScreenBuffer()
+        message = Message()
+        sb.message = message
+
+        self.assertTrue(sb.redraw)
+        self.assertFalse(sb.redraw)
+        
+        message.set('test', Message.typeInfo)
+        
+        self.assertTrue(sb.redraw)
+
+        # message.set('test2', Message.typeInfo)
+        # sb.message = message
+        message.set('test2', Message.typeError)
+        self.assertTrue(sb.redraw)
+    
+    def test_redraw_command_true(self):
+        sb = ScreenBuffer()
+
+        sb.redraw
+        self.assertFalse(sb.redraw)
+
+        command = CommandBuffer()
+        command.add('d')
+        sb.command = command
+        self.assertTrue(sb.redraw)
+
+        command.add('d')
+        self.assertTrue(sb.redraw)
+    
+    def test__eq__True(self):
+        sb1 = ScreenBuffer()
+        sb2 = ScreenBuffer()
+
+        self.assertTrue(sb1 == sb2)
+    
+    def test__eq__False(self):
+        sb1 = ScreenBuffer()
+        sb2 = ScreenBuffer()
+        sb2.scr_cols = 10
+
+        # make sure, ever object ist tested against the other
+        self.assertFalse(sb2 == sb1)
+        self.assertFalse(sb1 == sb2)
+
+class BaseBuffer_Tests(unittest.TestCase):
+    def test__eq__True(self):
+        b1 = BaseBuffer()
+        b2 = BaseBuffer()
+
+        # make sure, ever object ist tested against the other
+        self.assertTrue(b1 == b2)
+        self.assertTrue(b2 == b1)
+    
+    def test__eq__False(self):
+        b1 = BaseBuffer()
+        b2 = BaseBuffer()
+        b2.a = 4
+
+        # make sure, ever object ist tested against the other
+        self.assertFalse(b1 == b2)
+        self.assertFalse(b2 == b1)
+    
+    def test__has_attr_changed(self):
+        b = BaseBuffer()
+        b.a = 1
+
+        self.assertTrue(b._has_attr_changed())
+        self.assertFalse(b._has_attr_changed())
+
+        b.a = 2
+        self.assertTrue(b._has_attr_changed())
+
+
 
 class ADFLOW_PLOT_Tests(unittest.TestCase):
     def setUp(self):
@@ -74,3 +164,5 @@ class ADFLOW_PLOT_Tests(unittest.TestCase):
 
         
 
+if __name__ == '__main__':
+    unittest.main()

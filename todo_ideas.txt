@@ -1,0 +1,18 @@
+adflow_plot
+
+make sure init error from adflow are beeing shown
+add support for logfile reading
+plot can 'shine' through solver info
+test usefulness of log x scale
+make sure, error are shown properly (python sytax error, etc.)
+make * available in plot
+xmax += 1
+add relative convergence for yaxis
+add a finished summary with timings
+
+
+
+adflow_util
+
+automatically save solution if canceled
+option to automatically restart if there is a restart file
