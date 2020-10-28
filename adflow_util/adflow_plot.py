@@ -365,17 +365,8 @@ class ADFlowPlot():
             n += 1
     
     def print_markers(self, cols, rows):
-        solvers_in_use = copy.copy(self.solvers_in_use)
-
-        # decide if precon marker should be plotted
-        solvers_in_use_temp = copy.copy(solvers_in_use)
-        solvers_in_use_temp.remove('None')
-        solvers_in_use_temp.remove('RK')
-        if len(solvers_in_use_temp) > 0:
-            solvers_in_use.append('preCon')
-
         n = 0
-        for solver in solvers_in_use:
+        for solver in self.solvers_in_use:
             if solver == 'None':
                 continue
 
@@ -385,7 +376,6 @@ class ADFlowPlot():
                 cols - 20 - 7, 
                 '{} {}'.format(marker, solver))
             n += 1
-
     
     def print_solver_info(self, cols):
         iter_tot = self.adData.adflow_vars_raw['Iter_Tot']
@@ -438,6 +428,7 @@ class ADFlowPlot():
 
         # set marker for solver
         line_marker = []
+        solvers_in_use = []
         for solver in self.adData.adflow_vars_raw['Iter_Type'][min_i:]:
             pc_marker = None
             if solver[0] == '*':
@@ -446,13 +437,16 @@ class ADFlowPlot():
             marker = self._solver_markers[solver]
 
             # add solver to solvers in unse
-            if solver not in self.solvers_in_use:
-                self.solvers_in_use.append(solver)
+            if solver not in solvers_in_use:
+                solvers_in_use.append(solver)
+            if pc_marker is not None:
+                solvers_in_use.append('preCon')
             
             # pc marker
             if pc_marker is not None:
                 marker = pc_marker + marker
             line_marker.append(marker)
+        self.solvers_in_use = solvers_in_use
 
         # add plot data
         for key, color in self._plot_vars.items():
