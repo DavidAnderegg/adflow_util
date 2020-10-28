@@ -3,7 +3,6 @@ adflow_plot
 make sure init error from adflow are beeing shown
 add support for logfile reading
 plot can 'shine' through solver info
-only redraw if there is something new
 test usefulness of log x scale
 make sure, error are shown properly (python sytax error, etc.)
 make * available in plot
