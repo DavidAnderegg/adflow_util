@@ -51,7 +51,7 @@ def str2bool(v):
         raise argparse.ArgumentTypeError('Boolean value expected.')
 
 
-class AttrComparable():
+class BaseBuffer():
 
     __attr_changed = False
 
@@ -60,22 +60,29 @@ class AttrComparable():
         self.b = 2
     
     def __eq__(self, other): 
-        # if not isinstance(other, AttrComparable):
-        #     # don't attempt to compare against unrelated types
-        #     return NotImplemented
+        if not isinstance(other, BaseBuffer):
+            # don't attempt to compare against unrelated types
+            return NotImplemented
 
         # iterate through atributes and compare
         similar = True
+
+        # test obj1 against obj2
         for attr, value in self.__dict__.items():
-            other_value = getattr(other, attr, None)
-            if value != other_value:
+            other_value = getattr(other, attr, 'nav')
+            if value != other_value or other_value == 'nav':
+                similar = False
+        # test obj2 against obj1
+        for attr, value in other.__dict__.items():
+            other_value = getattr(self, attr, 'nav')
+            if value != other_value or other_value == 'nav':
                 similar = False
         
         return similar
 
     def __setattr__(self, instance, value):
         is_value = getattr(self, instance, None)
-        super(AttrComparable, self).__setattr__(instance, value)
+        super(BaseBuffer, self).__setattr__(instance, value)
 
         if '__attr_changed' in instance:
             return
@@ -92,7 +99,7 @@ class AttrComparable():
         return True
 
 
-class CommandBuffer(AttrComparable):
+class CommandBuffer(BaseBuffer):
     """
         This Class buffers the commands which a user inputs
     """
@@ -123,55 +130,33 @@ class CommandBuffer(AttrComparable):
     def get_active(self):
         return self._active
 
-class ScreenBuffer(AttrComparable):
+class ScreenBuffer(BaseBuffer):
     """
         This class handles the decision to redraw or not.
 
         It buffers the last values and returns __redraw = True if something changed. 
         After accessing __redraw, it is set back to False
     """
-    # __attr_changed = False
 
-    def __init__(self):
-        # super(AttrComparable, self).__init__()
-        # self.scr_rows = 0
-        # self.scr_cols = 0
-        # self.adflow_stdout_len = 0
-        # self.adflow_iter_len = 0
-        self.message = Message()
-        self.command = CommandBuffer()
-    
-    # def __setattr__(self, instance, value):
-    #     is_value = getattr(self, instance, None)
-    #     super(ScreenBuffer, self).__setattr__(instance, value)
-
-    #     if '__attr_changed' in instance:
-    #         return
-
-    #     if not self.__attr_changed:
-    #         if not is_value == value:
-    #             self.__attr_changed = True
-
-        # print(instance)
-    
     @property
     def redraw(self):
-        # if not self.__attr_changed:
-        #     return False
-
-        # self.__attr_changed = False
-        # return True
         redraw = False
-        check_objects = [self, self.message, self.command]
+
+        # create a list of all sub-objects
+        check_objects = [self]
+        for obj in self.__dict__.values():
+            if isinstance(obj, BaseBuffer):
+                check_objects.append(obj)
+
+        # check all subobjects
         for obj in check_objects:
-            # if obj.__has_attr_changed():
             if obj._has_attr_changed():
                 redraw = True
-                break
+                # no break here, so all __attr_changed will be reseted
         return redraw
     
 
-class Message(AttrComparable):
+class Message(BaseBuffer):
     """
         This Class handles the message at the bottom of the window.
     """
@@ -199,8 +184,6 @@ class Message(AttrComparable):
         lines = self._text.splitlines()
         if lines == []:
             return '', 0, self.typeNone
-        # else:
-        #     lines = [lines]
 
         if self._type != self.typeNone:
             lines[0] = "{}: {}".format(self.prefix[self._type], lines[0])
@@ -280,18 +263,16 @@ class ADFlowPlot():
             rows, cols = self.screen.getmaxyx()
 
             # update buffer with new values to get decision to redraw
-            # self.screenBuffer.scr_cols = cols
-            # self.screenBuffer.scr_rows = rows
-            # self.screenBuffer.message = self.message
+            self.screenBuffer.scr_cols = cols
+            self.screenBuffer.scr_rows = rows
+            self.screenBuffer.message = self.message
             self.screenBuffer.command = self.commandBuffer
-            # self.screenBuffer.adflow_stdout_len = len(self.adData.stdout_lines)
-            # if len(self.adData.adflow_vars) > 0:
-            #     self.screenBuffer.adflow_iter_len = len(self.adData.adflow_vars['Iter'])
+            self.screenBuffer.adflow_stdout_len = len(self.adData.stdout_lines)
+            if len(self.adData.adflow_vars) > 0:
+                self.screenBuffer.adflow_iter_len = len(self.adData.adflow_vars['Iter'])
 
             # redraw if something has changed
-            # print(self.screenBuffer.redraw)
             if self.screenBuffer.redraw:
-                print('redrawing')
                 self.draw(rows, cols)
 
             # refresh and key input
@@ -330,11 +311,8 @@ class ADFlowPlot():
                 # print solver information
                 self.print_solver_info(cols)
 
-            # update buffer
-            # self._screen_buffer.adflow_iter_len = adflow_iter_len
-
         # print command line at bottom:
-        self.screen.addstr(rows-1, 0, 'Command: ' + self.commandBuffer.get_active())
+        self.screen.addstr(rows-1, 0, self.commandBuffer.get_active())
     
     def print_message(self, rows):
         lines, line_count, _type = self.message.text()

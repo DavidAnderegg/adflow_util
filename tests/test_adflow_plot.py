@@ -34,12 +34,14 @@ class ScreenBuffer_Tests(unittest.TestCase):
     
     def test_redraw_message_true(self):
         sb = ScreenBuffer()
-
-        sb.redraw
-        self.assertFalse(sb.redraw)
         message = Message()
-        message.set('test', Message.typeInfo)
         sb.message = message
+
+        self.assertTrue(sb.redraw)
+        self.assertFalse(sb.redraw)
+        
+        message.set('test', Message.typeInfo)
+        
         self.assertTrue(sb.redraw)
 
         # message.set('test2', Message.typeInfo)
@@ -72,24 +74,30 @@ class ScreenBuffer_Tests(unittest.TestCase):
         sb2 = ScreenBuffer()
         sb2.scr_cols = 10
 
+        # make sure, ever object ist tested against the other
+        self.assertFalse(sb2 == sb1)
         self.assertFalse(sb1 == sb2)
 
-class AttrComparable_Tests(unittest.TestCase):
+class BaseBuffer_Tests(unittest.TestCase):
     def test__eq__True(self):
-        b1 = AttrComparable()
-        b2 = AttrComparable()
+        b1 = BaseBuffer()
+        b2 = BaseBuffer()
 
+        # make sure, ever object ist tested against the other
         self.assertTrue(b1 == b2)
+        self.assertTrue(b2 == b1)
     
     def test__eq__False(self):
-        b1 = AttrComparable()
-        b2 = AttrComparable()
+        b1 = BaseBuffer()
+        b2 = BaseBuffer()
         b2.a = 4
 
+        # make sure, ever object ist tested against the other
         self.assertFalse(b1 == b2)
+        self.assertFalse(b2 == b1)
     
     def test__has_attr_changed(self):
-        b = AttrComparable()
+        b = BaseBuffer()
         b.a = 1
 
         self.assertTrue(b._has_attr_changed())
@@ -156,3 +164,5 @@ class ADFLOW_PLOT_Tests(unittest.TestCase):
 
         
 
+if __name__ == '__main__':
+    unittest.main()
