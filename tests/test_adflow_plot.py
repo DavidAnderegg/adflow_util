@@ -117,7 +117,7 @@ class ADFLOW_PLOT_Tests(unittest.TestCase):
     # parse_adflow_vars
     def test_parse_adflow_vars(self):
         stdout_line = self.test_log[335:337]
-        supposed = ["Grid_level", "Iter", "Iter_Tot", "Iter_Type", "CFL", "Step", "Lin_Res", "Res_rho", "Res_nuturb", "C_lift", "C_drag", "totalRes"]
+        supposed = ["Grid_level", "Iter", "Iter_Tot", "Iter_Type", "CFL", "Step", "Lin_Res", "Res_rho", "Res_nuturb", "C_lift", "C_drag", "totalRes", 'relRes']
         supposed_dict = OrderedDict()
         for sup in supposed:
             supposed_dict[sup] = []
@@ -128,8 +128,8 @@ class ADFLOW_PLOT_Tests(unittest.TestCase):
     # parse_adflow_iteration
     def test_parse_adflow_iteration(self):
         stdout_line = self.test_log[335:337]
-        supposed = ["Grid_level", "Iter", "Iter_Tot", "Iter_Type", "CFL", "Step", "Lin_Res", "Res_rho", "Res_nuturb", "C_lift", "C_drag", "totalRes"]
-        supposed_values = [1, 0, 0, 'None', 0.00E+00, 1.00, '----', 0.7320062894350213E+04, 0.1153951480946582E-01, 0.9149551373100052E-01, 0.3701037668832862E+01, 0.6673485782026773E+07]
+        supposed = ["Grid_level", "Iter", "Iter_Tot", "Iter_Type", "CFL", "Step", "Lin_Res", "Res_rho", "Res_nuturb", "C_lift", "C_drag", "totalRes", 'relRes']
+        supposed_values = [1, 0, 0, 'None', 0.00E+00, 1.00, '----', 0.7320062894350213E+04, 0.1153951480946582E-01, 0.9149551373100052E-01, 0.3701037668832862E+01, 0.6673485782026773E+07, 0.0]
         supposed_dict = OrderedDict()
         n = 0
         for sup in supposed:
@@ -145,7 +145,7 @@ class ADFLOW_PLOT_Tests(unittest.TestCase):
     # parse_stdout_line
     def test_parse_stdout_line_adflow_vars(self):
         stdout_line = self.test_log[334:338]
-        supposed = ["Grid_level", "Iter", "Iter_Tot", "Iter_Type", "CFL", "Step", "Lin_Res", "Res_rho", "Res_nuturb", "C_lift", "C_drag", "totalRes"]
+        supposed = ["Grid_level", "Iter", "Iter_Tot", "Iter_Type", "CFL", "Step", "Lin_Res", "Res_rho", "Res_nuturb", "C_lift", "C_drag", "totalRes", 'relRes']
         supposed_dict = OrderedDict()
         for sup in supposed:
             supposed_dict[sup] = []
