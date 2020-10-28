@@ -231,6 +231,7 @@ class ADFlowPlot():
         curses.init_pair(6, curses.COLOR_CYAN, curses.COLOR_BLACK)
 
         # init solver markers
+        self.solvers_in_use = []
         self._solver_markers = {
             'None': '•',
             'RK': '•',
@@ -312,6 +313,8 @@ class ADFlowPlot():
                 # print solver information
                 self.print_solver_info(cols)
 
+                self.print_markers(cols, rows)
+
         # print command line at bottom:
         self.screen.addstr(rows-1, 0, self.commandBuffer.get_active())
     
@@ -360,6 +363,29 @@ class ADFlowPlot():
                 label[1],
                 curses.color_pair(label[0]))
             n += 1
+    
+    def print_markers(self, cols, rows):
+        solvers_in_use = copy.copy(self.solvers_in_use)
+
+        # decide if precon marker should be plotted
+        solvers_in_use_temp = copy.copy(solvers_in_use)
+        solvers_in_use_temp.remove('None')
+        solvers_in_use_temp.remove('RK')
+        if len(solvers_in_use_temp) > 0:
+            solvers_in_use.append('preCon')
+
+        n = 0
+        for solver in solvers_in_use:
+            if solver == 'None':
+                continue
+
+            marker = self._solver_markers[solver]
+            self.screen.addstr(
+                self._n_adflowout + n + 9, 
+                cols - 20 - 7, 
+                '{} {}'.format(marker, solver))
+            n += 1
+
     
     def print_solver_info(self, cols):
         iter_tot = self.adData.adflow_vars_raw['Iter_Tot']
@@ -418,6 +444,12 @@ class ADFlowPlot():
                 solver = solver[1:]
                 pc_marker = self._solver_markers['preCon']
             marker = self._solver_markers[solver]
+
+            # add solver to solvers in unse
+            if solver not in self.solvers_in_use:
+                self.solvers_in_use.append(solver)
+            
+            # pc marker
             if pc_marker is not None:
                 marker = pc_marker + marker
             line_marker.append(marker)
@@ -573,10 +605,6 @@ class ADFlowPlot():
                             ['hlog'],
                             'Sets the height of console window at the top.',
                             'int            height in lines.'],
-
-            'markers': [self.cmd_list_markers,
-                            ['lm', 'markers'],
-                            'Displays the different markers for the solvers.'],
         }
 
         # prepare command switcher
@@ -825,15 +853,7 @@ class ADFlowPlot():
 
         self._n_adflowout = value
         self.message.set('Log height was set to "{}"'.format(value), Message.typeSuccess)
- 
-    def cmd_list_markers(self, args):
-        l_string = ''
-        for solver, marker in self._solver_markers.items():
-            if solver == 'None':
-                continue
-            l_string += '{} {}    '.format(marker, solver)
-        
-        self.message.set(l_string, Message.typeInfo)
+
 
 class ADflowData():
     """
