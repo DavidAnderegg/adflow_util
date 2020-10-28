@@ -919,7 +919,8 @@ class ADflowData():
         # process = subprocess.Popen(shlex.split(command), stdout=subprocess.PIPE)
         self.adflow_process = subprocess.Popen(
             shlex.split(command), env=os.environ,
-            stdout=subprocess.PIPE, stdin=subprocess.PIPE, bufsize=1, close_fds=ON_POSIX)
+            stdout=subprocess.PIPE, stderr=subprocess.STDOUT, stdin=subprocess.PIPE, 
+            bufsize=1, close_fds=ON_POSIX)
         
         # Pipe thread
         self.adflow_queue = queue.Queue()
