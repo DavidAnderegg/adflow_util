@@ -990,6 +990,9 @@ class ADflowData():
 
         n = 0
         for adflow_var in self.adflow_vars:
+            if adflow_var == 'relRes':
+                continue
+
             bit = str_to_number(bits[n])
             self.adflow_vars_raw[adflow_var].append(bit)
             self.adflow_vars[adflow_var].append(bit)
@@ -999,6 +1002,15 @@ class ADflowData():
                 
             # self.adflow_vars[adflow_var].append(str_to_number(bits[n]))
             n += 1
+        
+        # calculate relative convergence
+        if len(self.adflow_vars['totalRes']) > 1:
+            rel_conv = self.adflow_vars['totalRes'][0] / self.adflow_vars['totalRes'][-1]
+        else:
+            rel_conv = 0.0
+        
+        self.adflow_vars_raw['relRes'].append(rel_conv)
+        self.adflow_vars['relRes'].append(rel_conv)
     
     def parse_adflow_var_names(self, stdout_lines):
         # split all lines
@@ -1026,6 +1038,9 @@ class ADflowData():
         adflow_vars_dict = OrderedDict()
         for adflow_var in adflow_vars:
             adflow_vars_dict[adflow_var] = []
+        
+        # add relative convergence
+        adflow_vars_dict['relRes'] = []
         
         return adflow_vars_dict
 
