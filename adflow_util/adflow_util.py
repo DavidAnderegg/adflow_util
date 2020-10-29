@@ -19,12 +19,57 @@ is_arraylike = [
     'coefPol', 'cosCoefFourier', 'sinCoefFourier', 'momentAxis', 'solverOptions', 'evalFuncs'
 ]
 
+
+class Error(Exception):
+    """
+    Format the error message in a box to make it clear this
+    was a explicitly raised exception.
+    """
+    def __init__(self, message):
+        msg = '\n+'+'-'*78+'+'+'\n' + '| pyHyp Error: '
+        i = 14
+        for word in message.split():
+            if len(word) + i + 1 > 78: # Finish line and start new one
+                msg += ' '*(78-i)+'|\n| ' + word + ' '
+                i = 1 + len(word)+1
+            else:
+                msg += word + ' '
+                i += len(word)+1
+        msg += ' '*(78-i) + '|\n' + '+'+'-'*78+'+'+'\n'
+        print(msg)
+        Exception.__init__(self)
+
+
 class ADFLOW_UTIL:
-    def __init__(self, aeroOptions, solverOptions, name='default', reset_ap=False):
+    def __init__(self, aeroOptions, solverOptions, utilOptions=None):
         self.aeroOptions = aeroOptions
         self.solverOptions = solverOptions
-        self.name = name
-        self.reset_ap = reset_ap
+        # self.name = name
+        # self.reset_ap = reset_ap
+
+        defaultUtilOptions = {
+            # The name that is beeing used for the '.out' file and AP
+            "name": 'default',
+
+            # If the AeroPoint should be reseted for every new calculation. This can be usefull in
+            # in cases with small changes where the NK solver kicks in before the residual can climb.
+            # Because the NK solve is so early, it starts diverging
+            "resetAP": False,
+
+            # If ADflow automatically should restart if a restart-file with the exact Name is found.
+            # the script looks in the output folder for the restart file
+            "autoRestart": True,
+
+            # If ADflow should write the solution if the script is terminated early
+            "writeSolOnCancel": True,
+        }
+
+        # Get keys for every option
+        self.defaultOptionKeys = set(k.lower() for k in defaultUtilOptions)
+
+        # Setup the options
+        self.options = {}
+        self._checkOptions(utilOptions, defaultUtilOptions)
 
     def run(self):
         # init stuff
@@ -40,7 +85,7 @@ class ADFLOW_UTIL:
         if len(arrays) > 0:
             for n in range(len(self.aeroOptions[arrays[0]])):
                 # reset AP
-                if self.reset_ap:
+                if self.options['resetAP']:
                     self.create_aeroProblem()
                 self.run_point(n)
         else:
@@ -50,11 +95,15 @@ class ADFLOW_UTIL:
         arrays = self.find_array_aeroOptions()
 
         # figure out how the name should be
-        name = self.name
+        name = self.options['name']
         if len(arrays) > 0:
             for ar in arrays:
                 name += "_{}{}".format(ar, self.aeroOptions[ar][n])
         self.aeroProblem.name = name
+
+        # auto restart solution
+        if self.options['autoRestart']:
+            self.auto_restart(name)
 
         # set all AP variables
         if len(arrays) > 0:
@@ -78,6 +127,15 @@ class ADFLOW_UTIL:
             self.file.flush()
         except AttributeError:
             pass
+    
+    def auto_restart(self, name):
+        # only do this if there is nothing about restart in the solver options
+        if 'solRestart' in self.solverOptions:
+            if not self.aeroOptions['solRestart']:
+                return
+        
+        # if we use a restart file, we have to update the aeropoint anyways
+        self.create_aeroProblem()
     
     def create_funcs_table(self, funcs, n=0):
         header = []
@@ -163,10 +221,10 @@ class ADFLOW_UTIL:
         kwargs = self.get_ap_kwargs()
 
         if ADFLOW_AVAIL:
-            self.aeroProblem = AeroProblem(name=self.name, **kwargs)
+            self.aeroProblem = AeroProblem(name=self.options['name'], **kwargs)
         else:
             self.aeroProblem = type('', (), {})
-            self.aeroProblem.name = self.name
+            self.aeroProblem.name = self.options['name']
             for name, value in kwargs.items():
                 setattr(self.aeroProblem, name, value)
 
@@ -186,9 +244,9 @@ class ADFLOW_UTIL:
         return kwargs
 
     def write_header(self):
-        self.file = open(self.name + '.out', 'w')
+        self.file = open(self.options['name'] + '.out', 'w')
 
-        self.file.write(self.name + "\n\n")
+        self.file.write(self.options['name'] + "\n\n")
 
         # write aero options
         self.file.write('Aero Options\n')
@@ -207,6 +265,37 @@ class ADFLOW_UTIL:
             self.file.close()
         except AttributeError:
             pass
+    
+    def _checkOptions(self, options, defaultOptions):
+        """
+        Check the solver options against the default ones
+        and add option iff it is NOT in options
+        """
+        # Set existing ones
+        for key in options:
+            self.setOption(key, options[key])
+
+        # Check for the missing ones
+        optionKeys = set(k.lower() for k in options)
+        for key in defaultOptions:
+            if not key.lower() in optionKeys:
+                self.setOption(key, defaultOptions[key])
+    
+    def setOption(self, name, value):
+        """
+        Set the value of the requested option.
+        Parameters
+        ----------
+        name : str
+           Name of option to get. Not case sensitive
+        value : varries
+           Value to set
+        """
+
+        if name.lower() in self.defaultOptionKeys:
+            self.options[name.lower()] = value
+        else:
+            raise Error('setOption: %s is not a valid adflow_util option.'%name)
 
 
 if __name__ == '__main__':
