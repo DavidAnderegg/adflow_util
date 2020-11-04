@@ -5,7 +5,7 @@ plot can 'shine' through solver info
 test usefulness of log x scale
 option to activate PC print
 hlog can scroll up and down
-cancel plot if error (NaN in solution)
+cancel plot if error (NaN in solution )
 
 
 adflow_util

@@ -1,6 +1,9 @@
 from tabulate import tabulate
 import numpy
 import os
+from os import listdir
+from os.path import isfile, join
+import copy
 
 # automatically write solution when quiting
 
@@ -41,13 +44,13 @@ class Error(Exception):
 
 
 class ADFLOW_UTIL:
-    def __init__(self, aeroOptions, solverOptions, utilOptions=None):
+    def __init__(self, aeroOptions, solverOptions, options=None):
         self.aeroOptions = aeroOptions
         self.solverOptions = solverOptions
         # self.name = name
         # self.reset_ap = reset_ap
 
-        defaultUtilOptions = {
+        defaultOptions = {
             # The name that is beeing used for the '.out' file and AP
             "name": 'default',
 
@@ -62,14 +65,19 @@ class ADFLOW_UTIL:
 
             # If ADflow should write the solution if the script is terminated early
             "writeSolOnCancel": True,
+
+            # this automatically disables numbering of solutions. Usually it is okey, because
+            # adflow_util picks a unique name by its own
+            # this must be True to  use 'autoRestart'
+            "disableNumberSolutions": True,
         }
 
         # Get keys for every option
-        self.defaultOptionKeys = set(k.lower() for k in defaultUtilOptions)
+        self.defaultOptionKeys = set(k.lower() for k in defaultOptions)
 
         # Setup the options
         self.options = {}
-        self._checkOptions(utilOptions, defaultUtilOptions)
+        self._checkOptions(options, defaultOptions)
 
     def run(self):
         # init stuff
@@ -85,31 +93,37 @@ class ADFLOW_UTIL:
         if len(arrays) > 0:
             for n in range(len(self.aeroOptions[arrays[0]])):
                 # reset AP
-                if self.options['resetAP']:
+                if self.options['resetap']:
                     self.create_aeroProblem()
                 self.run_point(n)
         else:
             self.run_point()
 
     def run_point(self, n=0):
-        arrays = self.find_array_aeroOptions()
+        ap_arrays = self.find_array_aeroOptions()
 
         # figure out how the name should be
         name = self.options['name']
-        if len(arrays) > 0:
-            for ar in arrays:
+        if len(ap_arrays) > 0:
+            for ar in ap_arrays:
                 name += "_{}{}".format(ar, self.aeroOptions[ar][n])
         self.aeroProblem.name = name
-
-        # auto restart solution
-        if self.options['autoRestart']:
-            self.auto_restart(name)
-
+           
         # set all AP variables
-        if len(arrays) > 0:
-            for ar in arrays:
+        if len(ap_arrays) > 0:
+            for ar in ap_arrays:
                 setattr(self.aeroProblem, ar, self.aeroOptions[ar][n])
         
+         # auto restart solution
+        if self.options['autorestart']:
+            temp_solverOptions = self.auto_restart()
+            # add solver options to existing onesj
+            if 'adflow' not in self.aeroProblem.solverOptions:
+                self.aeroProblem.solverOptions = {'adflow': {}}
+            
+            for key, value in temp_solverOptions.items():
+                self.aeroProblem.solverOptions['adflow'][key] = value
+
         # solve
         if ADFLOW_AVAIL:
             self.CFDSolver(self.aeroProblem)
@@ -128,14 +142,30 @@ class ADFLOW_UTIL:
         except AttributeError:
             pass
     
-    def auto_restart(self, name):
+    def auto_restart(self):
         # only do this if there is nothing about restart in the solver options
         if 'solRestart' in self.solverOptions:
-            if not self.aeroOptions['solRestart']:
-                return
+            if not self.solverOptions['solRestart']:
+                return {}
+
+        # disable numbering
+        if not self.options['disablenumbersolutions']:
+            raise Error('"disableNumberSolutions" must be True when using "autoRestart"')
+
+        temp_solverOptions = dict()
         
-        # if we use a restart file, we have to update the aeropoint anyways
-        self.create_aeroProblem()
+        # look for the restart sol file
+        out_dir = self.solverOptions['outputDirectory']
+        out_file = os.path.join(out_dir, self.aeroProblem.name + '_vol.cgns')
+        if os.path.isfile(out_file):
+            temp_solverOptions['restartfile'] = out_file
+            # temp_solverOptions['solrestart'] = True
+        
+        # make sure some needed adflow-options are saved
+        temp_solverOptions['writevolumesolution'] = True
+        temp_solverOptions['solutionprecision'] = 'double'
+
+        return temp_solverOptions
     
     def create_funcs_table(self, funcs, n=0):
         header = []
@@ -206,6 +236,10 @@ class ADFLOW_UTIL:
         return True
 
     def create_solver(self):
+        # disable autmatic numbering of solution
+        if self.options['disablenumbersolutions']:
+            self.solverOptions['numbersolutions'] = False
+
         # only create solver if not ADFLOW_AVAIL
         if ADFLOW_AVAIL:
             self.CFDSolver = ADFLOW(options=self.solverOptions)
