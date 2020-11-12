@@ -7,8 +7,7 @@ options = {
 }
 
 aeroOptions = {
-    # 'alpha': [1, 2, 3, 4],
-    'alpha': [1],
+    'alpha': [1, 2, 3, 4],
     'reynolds': 3e6,
     'mach': 0.15,
     'T': 288,
@@ -18,10 +17,6 @@ aeroOptions = {
     'areaRef': 1.0,
     'chordRef': 1.0,
     'evalFuncs': ['cl','cd', 'cmz'],
-
-    # 'solverOptions': {'adflow': {
-    #     'nCycles': 10,
-    # }}
 }
 
 solverOptions = {
@@ -61,8 +56,7 @@ solverOptions = {
     'outputsurfacefamily': 'wall',
     'surfacevariables': ['cp','vx', 'vy','vz', 'mach'],
     'volumevariables': ['resrho'],
-    # 'nCycles':10000,
-    'nCycles': 150,
+    'nCycles':10000,
     'L2Convergence':1e-12,
 }
 

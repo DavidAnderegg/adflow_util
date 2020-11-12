@@ -6,9 +6,9 @@ test usefulness of log x scale
 option to activate PC print
 hlog can scroll up and down
 cancel plot if error (NaN in solution )
+only redraw what is necessairy
 
 
 adflow_util
 
 automatically save solution if canceled
-option to automatically restart if there is a restart file

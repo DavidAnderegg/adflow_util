@@ -4,6 +4,7 @@ import os
 from os import listdir
 from os.path import isfile, join
 import copy
+import signal
 
 # automatically write solution when quiting
 
@@ -78,6 +79,8 @@ class ADFLOW_UTIL:
         # Setup the options
         self.options = {}
         self._checkOptions(options, defaultOptions)
+
+        self.CFDSolver = None
 
     def run(self):
         # init stuff
@@ -295,10 +298,13 @@ class ADFLOW_UTIL:
         self.file.write(tabulate(aero_data))
 
     def __del__(self):
+        print('########################deleting#####################################')
         try:
             self.file.close()
         except AttributeError:
             pass
+    
+        
     
     def _checkOptions(self, options, defaultOptions):
         """
@@ -331,6 +337,12 @@ class ADFLOW_UTIL:
         else:
             raise Error('setOption: %s is not a valid adflow_util option.'%name)
 
+
+    
+def sigterm_handler(signum, frame):
+    raise KeyboardInterrupt
+
+signal.signal(signal.SIGTERM, sigterm_handler)
 
 if __name__ == '__main__':
     aeroOptions = {
