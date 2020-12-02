@@ -91,23 +91,11 @@ Type **h** or **help** to get a list of all commands. type **h a_command** oder 
 
 
 # Installation
-simply clone this repo with
+Simply execute this command (if pip and git is installed)
 ```
-git clone https://github.com/DavidAnderegg/adflow_util.git
+pip install git+https://github.com/DavidAnderegg/adflow_util.git
 ```
-move into its directory
-```
-cd adflow_util
-```
-and pip-install it
-```
-pip install .
-```
-Now, you can remove the directory
-```
-cd ../
-rm adflow_util -R
-```
+
 # Limitations, Bugs and Ideas
 As for now, this whole suite was only tested with steady simulations. Additionally, some terminals handle input keys differently and it might be possible, that for example ENTER ist not properly recognised. Please file a bug report so I can fix it as soon as possible.
 
