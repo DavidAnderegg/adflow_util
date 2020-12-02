@@ -1,7 +1,10 @@
 from adflow_util import ADFLOW_UTIL
 
-name = 'n0012_sweep'
-reset_ap = True
+
+options = {
+    'name': 'n0012_sweep',
+    'resetAP': True,
+}
 
 aeroOptions = {
     'alpha': [1, 2, 3, 4],
@@ -13,7 +16,7 @@ aeroOptions = {
     'xRef': 0.25,
     'areaRef': 1.0,
     'chordRef': 1.0,
-    'evalFuncs': ['cl','cd', 'cmz']
+    'evalFuncs': ['cl','cd', 'cmz'],
 }
 
 solverOptions = {
@@ -57,5 +60,5 @@ solverOptions = {
     'L2Convergence':1e-12,
 }
 
-au = ADFLOW_UTIL(aeroOptions, solverOptions, name, reset_ap)
+au = ADFLOW_UTIL(aeroOptions, solverOptions, options)
 au.run()
