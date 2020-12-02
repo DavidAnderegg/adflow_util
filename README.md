@@ -3,6 +3,8 @@
 This package provides some convenience functions for [ADflow](https://github.com/mdolab/adflow). It allows to:
 
 1. Easily calculate a Polar sweep with ADflow.
+2. Automatically create the **output** folder for ADflow.
+3. Automatically restart ADflow if there is a solution available.
 2. Plot realtime ADflow state variables in the terminal.
 
 
@@ -13,7 +15,10 @@ The following script sweeps through a list of Angle of Attacks (the full example
 ``` python
 from adflow_util import ADFLOW_UTIL
 
-name = 'n0012_sweep'
+options = {
+    'name': 'n0012_sweep',
+    'resetAP': True,
+}
 
 aeroOptions = {
     'alpha': [1, 2, 3, 4],
@@ -33,10 +38,13 @@ solverOptions = {
     'L2Convergence':1e-12,
 }
 
-au = ADFLOW_UTIL(aeroOptions, solverOptions, name)
+au = ADFLOW_UTIL(aeroOptions, solverOptions, options)
 au.run()
 ```
 The dict **aeroOptions** holds all the variables that normally **baseclasses.AeroProblem** would. If one variable is a list, this is considered the sweep variable. All variables except **coefPol, cosCoefFourier, sinCoefFourier, momentAxis, solverOptions, evalFuncs** can be sweeped. 
+
+The dict **options** holds some ADFLOW_UTIL specific options. More about them can be found 
+[here](https://github.com/DavidAnderegg/adflow_util/blob/master/adflow_util/adflow_util.py#L52).
 
 This script will generate a file called *n0012_sweep.out* with this content:
 ```

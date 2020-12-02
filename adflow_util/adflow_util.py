@@ -4,9 +4,7 @@ import os
 from os import listdir
 from os.path import isfile, join
 import copy
-import signal
 
-# automatically write solution when quiting
 
 # ADFLOW_AVAIL existst so this script can be testet on a windows machine
 try:
@@ -56,20 +54,17 @@ class ADFLOW_UTIL:
             "name": 'default',
 
             # If the AeroPoint should be reseted for every new calculation. This can be usefull in
-            # in cases with small changes where the NK solver kicks in before the residual can climb.
-            # Because the NK solve is so early, it starts diverging
+            # cases with small changes where the NK solver kicks in before the residual can climb
+            # cause NK to diverge
             "resetAP": False,
 
             # If ADflow automatically should restart if a restart-file with the exact Name is found.
             # the script looks in the output folder for the restart file
+            # "disableNumberSolutions" must be set to "True" to use this function
             "autoRestart": True,
-
-            # If ADflow should write the solution if the script is terminated early
-            "writeSolOnCancel": True,
 
             # this automatically disables numbering of solutions. Usually it is okey, because
             # adflow_util picks a unique name by its own
-            # this must be True to  use 'autoRestart'
             "disableNumberSolutions": True,
         }
 
@@ -298,7 +293,6 @@ class ADFLOW_UTIL:
         self.file.write(tabulate(aero_data))
 
     def __del__(self):
-        print('########################deleting#####################################')
         try:
             self.file.close()
         except AttributeError:
@@ -337,12 +331,6 @@ class ADFLOW_UTIL:
         else:
             raise Error('setOption: %s is not a valid adflow_util option.'%name)
 
-
-    
-def sigterm_handler(signum, frame):
-    raise KeyboardInterrupt
-
-signal.signal(signal.SIGTERM, sigterm_handler)
 
 if __name__ == '__main__':
     aeroOptions = {
