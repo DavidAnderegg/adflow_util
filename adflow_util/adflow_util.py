@@ -66,6 +66,12 @@ class ADFLOW_UTIL:
             # this automatically disables numbering of solutions. Usually it is okey, because
             # adflow_util picks a unique name by its own
             "disableNumberSolutions": True,
+
+            # This allows to define some familygroupes.
+            # it takes a dict in the from:
+            # {"group": ["surface1", "surface2"]}
+            # adflow_util basically iterates through this dict and runs "CFDSolver.addFamilyGroup()"
+            "surfaceFamilyGroups": None,
         }
 
         # Get keys for every option
@@ -248,6 +254,11 @@ class ADFLOW_UTIL:
                     out_dir = self.solverOptions['outputDirectory']
                     if not os.path.exists(out_dir):
                         os.makedirs(out_dir)
+            
+            # create the surface families
+            if self.options['surfacefamilygroups'] is not None:
+                for group_name, surfaces in self.options['surfacefamilygroups'].items():
+                    self.CFDSolver.addFamilyGroup(group_name, surfaces)
 
     def create_aeroProblem(self):
         kwargs = self.get_ap_kwargs()
