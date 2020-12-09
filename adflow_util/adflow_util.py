@@ -28,7 +28,7 @@ class Error(Exception):
     was a explicitly raised exception.
     """
     def __init__(self, message):
-        msg = '\n+'+'-'*78+'+'+'\n' + '| pyHyp Error: '
+        msg = '\n+'+'-'*78+'+'+'\n' + '| adflow_util Error: '
         i = 14
         for word in message.split():
             if len(word) + i + 1 > 78: # Finish line and start new one
@@ -66,6 +66,12 @@ class ADFLOW_UTIL:
             # this automatically disables numbering of solutions. Usually it is okey, because
             # adflow_util picks a unique name by its own
             "disableNumberSolutions": True,
+
+            # This allows to define some familygroupes.
+            # it takes a dict in the from:
+            # {"group": ["surface1", "surface2"]}
+            # adflow_util basically iterates through this dict and runs "CFDSolver.addFamilyGroup()"
+            "surfaceFamilyGroups": None,
         }
 
         # Get keys for every option
@@ -229,7 +235,7 @@ class ADFLOW_UTIL:
             for name in arrays:
                 # check if they are the same length, if they can be array_like, it doesnt matter
                 if a_length != len(self.aeroOptions[name]) and not name in is_arraylike:
-                    raise ValueError('All Arrays must be the same length.')
+                    raise Error('All sweep variables must be the same length.')
 
         return True
 
@@ -248,6 +254,11 @@ class ADFLOW_UTIL:
                     out_dir = self.solverOptions['outputDirectory']
                     if not os.path.exists(out_dir):
                         os.makedirs(out_dir)
+            
+            # create the surface families
+            if self.options['surfacefamilygroups'] is not None:
+                for group_name, surfaces in self.options['surfacefamilygroups'].items():
+                    self.CFDSolver.addFamilyGroup(group_name, surfaces)
 
     def create_aeroProblem(self):
         kwargs = self.get_ap_kwargs()

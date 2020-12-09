@@ -1,4 +1,5 @@
 from adflow_util import ADFLOW_UTIL
+from adflow_util.adflow_util import Error
 import unittest
 
 class ADFLOW_UTIL_Tests(unittest.TestCase):
@@ -10,7 +11,15 @@ class ADFLOW_UTIL_Tests(unittest.TestCase):
             'mach': 0.1
         }
 
-        self.au = ADFLOW_UTIL(aeroOptions, {}, 'test')
+        solverOptions = {
+            'outputDirectory': './',
+        }
+
+        options = {
+            'name': 'test',
+        }
+
+        self.au = ADFLOW_UTIL(aeroOptions, solverOptions, options)
 
     # check_ap_input
     def test_check_ap_input_wrong_arrays(self):
@@ -21,7 +30,7 @@ class ADFLOW_UTIL_Tests(unittest.TestCase):
             'mach': 0.1
         }
         
-        with self.assertRaises(ValueError):
+        with self.assertRaises(Error):
             self.au.check_ap_input()
 
     def test_check_ap_input_no_arrays(self):
@@ -76,7 +85,7 @@ class ADFLOW_UTIL_Tests(unittest.TestCase):
         kwargs_dict = self.au.get_ap_kwargs()
         self.assertDictEqual(kwargs_dict, self.au.aeroOptions)
     
-    def test_get_ap_kwargs_arrays(self):
+    def test_get_ap_kwargs_one_array(self):
         self.au.aeroOptions = {
             'alpha': [10, 20],
             'reynolds': 3e6,
@@ -84,6 +93,22 @@ class ADFLOW_UTIL_Tests(unittest.TestCase):
         kwargs_dict = self.au.get_ap_kwargs(0)
         self.assertDictEqual(kwargs_dict, {
             'alpha': 10,
+            'reynolds': 3e6,
+        })
+    
+    def test_get_ap_kwargs_arrays(self):
+        self.au.aeroOptions = {
+            'alpha': [10, 20],
+            'reynolds': [1e6, 3e6],
+        }
+        kwargs_dict = self.au.get_ap_kwargs(0)
+        self.assertDictEqual(kwargs_dict, {
+            'alpha': 10,
+            'reynolds': 1e6,
+        })
+        kwargs_dict = self.au.get_ap_kwargs(1)
+        self.assertDictEqual(kwargs_dict, {
+            'alpha': 20,
             'reynolds': 3e6,
         })
     
