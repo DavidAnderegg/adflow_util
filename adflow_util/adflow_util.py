@@ -28,7 +28,7 @@ class Error(Exception):
     was a explicitly raised exception.
     """
     def __init__(self, message):
-        msg = '\n+'+'-'*78+'+'+'\n' + '| pyHyp Error: '
+        msg = '\n+'+'-'*78+'+'+'\n' + '| adflow_util Error: '
         i = 14
         for word in message.split():
             if len(word) + i + 1 > 78: # Finish line and start new one
@@ -235,7 +235,7 @@ class ADFLOW_UTIL:
             for name in arrays:
                 # check if they are the same length, if they can be array_like, it doesnt matter
                 if a_length != len(self.aeroOptions[name]) and not name in is_arraylike:
-                    raise ValueError('All Arrays must be the same length.')
+                    raise Error('All sweep variables must be the same length.')
 
         return True
 
