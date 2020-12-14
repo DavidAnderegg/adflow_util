@@ -1,5 +1,5 @@
 from tabulate import tabulate
-import numpy
+import numpy as np
 import os
 from os import listdir
 from os.path import isfile, join
@@ -219,7 +219,7 @@ class ADFLOW_UTIL:
             if name in is_arraylike:
                 continue
 
-            if isinstance(value, list):
+            if isinstance(value, (list, np.ndarray)):
                 arrays.append(name)
         return arrays
 
