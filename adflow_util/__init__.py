@@ -1,4 +1,4 @@
-__version__ = '1.1.1'
+__version__ = '1.1.2'
 
 from .adflow_util import ADFLOW_UTIL
 from .adflow_plot import ADflowData

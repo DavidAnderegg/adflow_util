@@ -28,7 +28,7 @@ solverOptions = {
     'equationType':'RANS',
 
     # RK
-    'smoother':'runge kutta',
+    'smoother':'Runge-Kutta',
     'rkreset':True,
     'nrkreset':20,
     'CFL':0.8,
