@@ -25,10 +25,10 @@ def str2number(s):
         is_int = s[1:].isdigit()
     else:
         is_int = s.isdigit()
-    
+
     if is_int:
         return int(s)
-    
+
     # check for float
     try:
         return float(s)
@@ -58,8 +58,8 @@ class BaseBuffer():
     def __init__(self):
         self.a = 1
         self.b = 2
-    
-    def __eq__(self, other): 
+
+    def __eq__(self, other):
         if not isinstance(other, BaseBuffer):
             # don't attempt to compare against unrelated types
             return NotImplemented
@@ -77,7 +77,7 @@ class BaseBuffer():
             other_value = getattr(self, attr, 'nav')
             if value != other_value or other_value == 'nav':
                 similar = False
-        
+
         return similar
 
     def __setattr__(self, instance, value):
@@ -90,7 +90,7 @@ class BaseBuffer():
         if not self.__attr_changed:
             if not is_value == value:
                 self.__attr_changed = True
-    
+
     def _has_attr_changed(self):
         if not self.__attr_changed:
             return False
@@ -107,10 +107,10 @@ class CommandBuffer(BaseBuffer):
         self._active = ''
         self._history = []
         self._has_new_commited = False
-     
-    def add(self, c):         
+
+    def add(self, c):
         self._active += c
-    
+
     def remove(self, n=1):
         if len(self._active) >= n:
             for m in range(n):
@@ -120,10 +120,10 @@ class CommandBuffer(BaseBuffer):
         self._history.append(self._active)
         self._has_new_commited = True
         self._active = ''
-    
+
     def get_commited(self, n=0):
         if len(self._history) == 0:
-            return None
+            return []
         self._has_new_commited = False
         return self._history[-(n+1)]
 
@@ -134,7 +134,7 @@ class ScreenBuffer(BaseBuffer):
     """
         This class handles the decision to redraw or not.
 
-        It buffers the last values and returns __redraw = True if something changed. 
+        It buffers the last values and returns __redraw = True if something changed.
         After accessing __redraw, it is set back to False
     """
 
@@ -145,7 +145,8 @@ class ScreenBuffer(BaseBuffer):
         # create a list of all sub-objects
         check_objects = [self]
         for obj in self.__dict__.values():
-            if isinstance(obj, BaseBuffer):
+            # if isinstance(obj, BaseBuffer):
+            if isinstance(obj, ScreenBuffer):
                 check_objects.append(obj)
 
         # check all subobjects
@@ -154,7 +155,7 @@ class ScreenBuffer(BaseBuffer):
                 redraw = True
                 # no break here, so all __attr_changed will be reseted
         return redraw
-    
+
 
 class Message(BaseBuffer):
     """
@@ -197,7 +198,7 @@ class ADFlowPlot():
     """
 
     def __init__(self):
-        self.screen = None
+        # self.screen = None
         self.commandBuffer = CommandBuffer()
         self.screenBuffer = ScreenBuffer()
         self.adData = ADflowData()
@@ -242,18 +243,18 @@ class ADFlowPlot():
             'NK': '÷',
             'preCon': 'X'   # PreConditioner Marker
         }
-    
+
     def __del__(self):
         if self.screen is not None:
             self.cleanup()
-    
+
     def cleanup(self):
         # shudown stuff
         curses.nocbreak()
         self.screen.keypad(False)
         curses.echo()
         curses.endwin()
-    
+
     def main_loop(self):
         self.adData.start_adflow()
         while not self._exit:
@@ -286,7 +287,7 @@ class ADFlowPlot():
             d_t = 1/self.fps - (time.time() - t0)
             if d_t > 0:
                 time.sleep(d_t)
-    
+
     def draw(self, rows, cols):
         # flicker fix. Use erase instead of clear. But clear before first plot
         self.screen.erase()
@@ -294,14 +295,14 @@ class ADFlowPlot():
             self.screen.clear()
 
         # message lines:
-        line_count = self.print_message(rows) 
+        line_count = self.print_message(rows)
 
         # print console output at top
         self.print_adflow_output(rows, line_count)
 
         if len(self.adData.adflow_vars) > 0:
             adflow_iter_len = len(self.adData.adflow_vars['Iter'])
-            
+
             # only plot if at least 2 iterations and new data available
             if adflow_iter_len >= 2:
                 # plot vars
@@ -322,16 +323,16 @@ class ADFlowPlot():
 
         # print command line at bottom:
         self.screen.addstr(rows-1, 0, self.commandBuffer.get_active())
-    
+
     def print_message(self, rows):
         lines, line_count, _type = self.message.text()
         n = line_count
         for line in lines:
             self.screen.addstr(rows-1-n, 0, line, curses.color_pair(_type))
             n -= 1
-        
+
         return line_count
-    
+
     def print_adflow_output(self, height, line_count):
         len_output = self._n_adflowout
         if len(self.adData.adflow_vars) == 0:
@@ -344,19 +345,22 @@ class ADFlowPlot():
             else:
                 stdout_line = ''
             self.screen.addstr(len_output - n, 0, stdout_line)
-    
+
     def print_labels(self, cols, rows):
         # prepare print
         labels = []
         max_len_label = 0
         for var, color in self._plot_vars.items():
-            label = [color]
+            # label = [color]
+            # label = (color, '')
             if self._plot_log:
-                label.append('• log({})'.format(var))
+                # label.append('• log({})'.format(var))
+                txt = '• log({})'.format(var)
             else:
-                label.append('• {}'.format(var))
+                txt = '• {}'.format(var)
+            label = (color, txt)
             labels.append(label)
-            
+
             if len(label[1]) > max_len_label:
                 max_len_label = len(label[1])
         n = 0
@@ -364,11 +368,11 @@ class ADFlowPlot():
         # print
         for label in labels:
             self.screen.addstr(
-                self._n_adflowout + 1 + n, cols - max_len_label - 8 - 25, 
+                self._n_adflowout + 1 + n, cols - max_len_label - 8 - 25,
                 label[1],
                 curses.color_pair(label[0]))
             n += 1
-    
+
     def print_markers(self, cols, rows):
         n = 0
         for solver in self.solvers_in_use:
@@ -377,11 +381,11 @@ class ADFlowPlot():
 
             marker = self._solver_markers[solver]
             self.screen.addstr(
-                self._n_adflowout + n + 9, 
-                cols - 20 - 7, 
+                self._n_adflowout + n + 9,
+                cols - 20 - 7,
                 '{} {}'.format(marker, solver))
             n += 1
-    
+
     def print_solver_info(self, cols):
         iter_tot = self.adData.adflow_vars_raw['Iter_Tot']
         cfl = self.adData.adflow_vars_raw['CFL'][-1]
@@ -398,23 +402,23 @@ class ADFlowPlot():
         info_str = []
         for pair in pairs:
             info_str.append('{:9}: {:>7}'.format(pair[0], pair[1]))
-            
+
         # print name
         name = self.adData.ap_name + '_' + str(self.adData.hist_iteration)
         self.screen.addstr(
-            self._n_adflowout, int((cols - len(name) - 5) / 2), 
+            self._n_adflowout, int((cols - len(name) - 5) / 2),
             name)
-        
+
         # print info
         n = 0
         for line in info_str:
             self.screen.addstr(self._n_adflowout + 1 + n, cols - 20 - 7, line)
             n += 1
-    
+
     def print_finished_message(self, cols, rows):
         if self.adData.has_finished_total_call_time is None:
             return
-        
+
         if self.adData.has_finished_total_func_time is None:
             return
 
@@ -463,7 +467,7 @@ class ADFlowPlot():
             if pc_marker is not None:
                 if 'preCon' not in solvers_in_use:
                     solvers_in_use.append('preCon')
-            
+
             # pc marker
             if pc_marker is not None:
                 marker = pc_marker + marker
@@ -485,12 +489,12 @@ class ADFlowPlot():
             # calculate automatic limits
             if ylim is None and len(y) >= 2:
                 ylim = [
-                    min(y), 
+                    min(y),
                     max(y)]
             else:
                 ylim = [min(min(y), ylim[0]),
                         max(max(y), ylim[1])]
-        
+
         # set user limits
         if self._ymin is not None:
             ylim[0] = self._ymin
@@ -502,7 +506,7 @@ class ADFlowPlot():
             ylim[1] = ylim[0] + 1
             ylim[0] = ylim[0] - 1
             self.message.set('ymax is lower or same as ymin.', Message.typeError)
-    
+
         # prepare plot
         plx.set_xlim([x[0], x[-1]])
         plx.set_ylim(ylim)
@@ -528,19 +532,19 @@ class ADFlowPlot():
                 string = sub_line[len(color_str)+1:]
 
                 self.screen.addstr(
-                    self._n_adflowout + n, x, 
+                    self._n_adflowout + n, x,
                     string,
                     curses.color_pair(int(color_str[1:])))
                 x += len(string)
-    
+
     def parse_key_input(self):
-        try: 
+        try:
             c = self.screen.getch()
             if c == curses.ERR:
                 return
-            
+
             if isinstance(c, int):
-                
+
                 switcher = {
                     curses.KEY_BACKSPACE:   self.commandBuffer.remove,
                     8:                      self.commandBuffer.remove,
@@ -555,9 +559,14 @@ class ADFlowPlot():
                     self.commandBuffer.add(chr(c))
         except curses.error:
             pass
-    
+
     def parse_command(self):
-        temp = self.commandBuffer.get_commited().split()
+        new_command = self.commandBuffer.get_commited()
+        if new_command == '':
+            return
+
+        temp = new_command.split()
+
         command = temp[0]
         args = temp[1:]
 
@@ -569,7 +578,7 @@ class ADFlowPlot():
         # execute command
         func = self.commands_switcher.get(command)
         if func is not None: func(args)
-    
+
     def init_commands(self):
         self.commands = {
             'help':         [self.cmd_help,
@@ -616,7 +625,7 @@ class ADFlowPlot():
             'log':          [self.cmd_log,
                             ['log'],
                             'Switches between normal and logarithmic scale. Zero values will be printed as 0.'],
-            
+
             'hlog':         [self.cmd_hlog,
                             ['hlog'],
                             'Sets the height of console window at the top.',
@@ -629,7 +638,7 @@ class ADFlowPlot():
             for alias in command[1]:
                 switcher[alias] = command[0]
         self.commands_switcher = switcher
-    
+
     def cmd_help(self, args):
         def get_description(name, command):
             alias_text = ''
@@ -638,28 +647,28 @@ class ADFlowPlot():
             alias_text = alias_text[:-1]
 
             return '{: <12} access with{} \n {: <12}\n\n'.format(
-                name, alias_text, command[2]) 
+                name, alias_text, command[2])
 
         # list all commands
         if len(args) == 0:
             help_text = ''
             for name, command in self.commands.items():
                 help_text += get_description(name, command)
-        
+
         # list infos to a specific command
-        else: 
+        else:
             name = args[0]
             command = self.commands.get(name)
             if command == None:
                 return
-            
+
             help_text = get_description(name, command)
             if len(command) > 3:
                 help_text += 'Arguments:\n'
                 help_text += command[3]
 
         self.message.set(help_text[:-1], Message.typeNone)
-        
+
     def cmd_clear(self, args):
         self.message.set('', Message.typeNone)
 
@@ -678,7 +687,7 @@ class ADFlowPlot():
         else:
             self._confirm_quiting = False
             self.message.set('', Message.typeNone)
-    
+
     def cmd_list_var(self, args):
         if len(self.adData.adflow_vars) > 0:
             text = 'Plottable ADflow variables:\n'
@@ -689,7 +698,7 @@ class ADFlowPlot():
                     continue
 
                 text += '"{}", '.format(var)
-        
+
             text = text[:-2]
             self.message.set(text, Message.typeNone)
             return
@@ -701,7 +710,7 @@ class ADFlowPlot():
         if len(args) == 0:
             self.message.set('No Variable defined', Message.typeError)
             return
-        
+
         value = args[0]
 
         # check if value exists and get proper case
@@ -711,7 +720,7 @@ class ADFlowPlot():
             # if var is not plotable, continue
             if var in self.adData.not_plottable_vars:
                 continue
-            
+
             if value.lower() == var.lower():
                 exists = True
                 value = var
@@ -720,29 +729,29 @@ class ADFlowPlot():
         if not exists:
             self.message.set('"{}" ist not a Variable.'.format(value), Message.typeError)
             return
-        
+
         # check if value hast not been added allready
         if value in self._plot_vars:
             self.message.set('"{}" is allready plotting.'.format(value), Message.typeError)
-        
+
         # check if value is plottable
         if value in self.adData.not_plottable_vars:
             self.message.set('"{}" can not be plotet.'.format(value), Message.typeError)
             return
-        
+
         # figure out color
-        color = (n_color + 10) % 7 
+        color = (n_color + 10) % 7
 
         self._plot_vars[value] = color
 
         self.message.set('"{}" now plotting.'.format(value), Message.typeSuccess)
-    
+
     def cmd_remove_var(self, args):
         # check if there is an arg
         if len(args) == 0:
             self.message.set('No variable named.', Message.typeError)
             return
-        
+
         value = args[0]
 
         # check if the var is getting plotted
@@ -760,7 +769,7 @@ class ADFlowPlot():
         # if value not in self._plot_vars:
         #     self._message.set('"{}" is not active.'.format(value), Message.typeError)
         #     return
-        
+
         # remove key
         del self._plot_vars[value]
         self.message.set('"{}" has been removed.'.format(value), Message.typeSuccess)
@@ -771,14 +780,14 @@ class ADFlowPlot():
             value = '0'
         else:
             value = args[0]
-        
+
         # check fo int
         is_int = False
         if value[0] in ('-', '+'):
             is_int = value[1:].isdigit()
         else:
             is_int = value.isdigit()
-        
+
         if not is_int:
             self.message.set('Iterations count must be an integer.', Message.typeError)
             return
@@ -793,7 +802,8 @@ class ADFlowPlot():
         if value > 0:
             self.message.set('Showing last {} iterations.'.format(value), Message.typeSuccess)
         elif value < 0:
-            self.message.set('Not showing first {} iterations.'.format(-value), Message.typeSuccess)
+            self.message.set('Not showing first {} iterations.'.format(- value),
+                    Message.typeSuccess)
         else:
             self.message.set('Showing all iterations.', Message.typeSuccess)
 
@@ -803,7 +813,7 @@ class ADFlowPlot():
             self._ymin = None
             self.message.set('Ymin is automatic.', Message.typeSuccess)
             return
-        
+
         try:
             value = float(args[0])
         except ValueError:
@@ -814,7 +824,7 @@ class ADFlowPlot():
             if value >= self._ymax:
                 self.message.set('Ymin must be smaler than Ymax', Message.typeError)
                 return
-        
+
         self._ymin = value
         self.message.set('Ymin was set to "{}"'.format(value), Message.typeSuccess)
 
@@ -824,7 +834,7 @@ class ADFlowPlot():
             self._ymax = None
             self.message.set('Ymax is automatic.', Message.typeSuccess)
             return
-        
+
         try:
             value = float(args[0])
         except ValueError:
@@ -835,7 +845,7 @@ class ADFlowPlot():
             if value <= self._ymin:
                 self.message.set('Ymax must be greater than Ymin', Message.typeError)
                 return
-        
+
         self._ymax = value
         self.message.set('Ymax was set to "{}"'.format(value), Message.typeSuccess)
 
@@ -851,7 +861,7 @@ class ADFlowPlot():
         if len(args) == 0:
             self.message.set('Log height needs an argument', Message.typeError)
             return
-        
+
         value = args[0]
 
         if not value.isdigit():
@@ -863,7 +873,7 @@ class ADFlowPlot():
         num_rows, _ = self.screen.getmaxyx()
         if value > num_rows * 2/3:
             self.message.set(
-                'Log height can not be more than 2/3 ({}) of screen'.format(int(num_rows * 2 / 3)), 
+                'Log height can not be more than 2/3 ({}) of screen'.format(int(num_rows * 2 / 3)),
                 Message.typeError)
             return
 
@@ -878,14 +888,15 @@ class ADflowData():
     def __init__(self, args=None):
         self.parser = argparse.ArgumentParser(
             description='Allows to plot ADflow output on the command line')
-        
+
         # options
         self.not_plottable_vars = ['Iter_Type', 'Iter']
         self.flush_hist_n = 20
 
         # adflow process vars
         self.adflow_process = None
-        self.adflow_queue = None
+        # self.adflow_queue = None
+        self.adflow_queue = queue.Queue()
         self.adflow_thread = None
 
         # state vars
@@ -902,7 +913,7 @@ class ADflowData():
         # init functions
         self.parse_input_args(args if args is not None else sys.argv[1:])
         # self.init_vars()
-    
+
     def __del__(self):
         # kill adflow
         if self.adflow_process is not None:
@@ -912,18 +923,17 @@ class ADflowData():
         self.adflow_vars = OrderedDict()
         self.adflow_vars_raw = OrderedDict()
         self.hist_iteration += 1
-    
+
     def start_adflow(self):
         # run adflow script
         command = self.create_adflow_run_command()
         # process = subprocess.Popen(shlex.split(command), stdout=subprocess.PIPE)
         self.adflow_process = subprocess.Popen(
             shlex.split(command), env=os.environ,
-            stdout=subprocess.PIPE, stderr=subprocess.STDOUT, stdin=subprocess.PIPE, 
+            stdout=subprocess.PIPE, stderr=subprocess.STDOUT, stdin=subprocess.PIPE,
             bufsize=1, close_fds=ON_POSIX)
-        
+
         # Pipe thread
-        self.adflow_queue = queue.Queue()
         self.adflow_thread = threading.Thread(
             target=enqueue_output, args=(self.adflow_process.stdout, self.adflow_queue))
         self.adflow_thread.daemon = True # thread dies with the program
@@ -947,7 +957,7 @@ class ADflowData():
 
     def read_stdout_lines(self):
         while True:
-            try:  
+            try:
                 line = self.adflow_queue.get_nowait()
             except queue.Empty:
                 break
@@ -955,7 +965,7 @@ class ADflowData():
                 # parse the line
                 self.stdout_lines.append(line.decode("utf-8").rstrip())
                 self.parse_stdout_line()
-    
+
     def parse_input_args(self, args):
         # input file
         self.parser.add_argument("-i", dest="inputfile", required=True, type=str,
@@ -963,13 +973,13 @@ class ADflowData():
 
         # history file
         self.parser.add_argument("-hist", dest="hist", default=True,  type=str2bool,
-            help="Should be false if no history file should be written.") 
+            help="Should be false if no history file should be written.")
         self.parser.add_argument("-histFile", dest="histFile", default=None, type=str,
             help="The .csv file where the convergence history should be written. " \
-                 "Default uses AeroProblem Name.")  
+                 "Default uses AeroProblem Name.")
         self.parser.add_argument('-histDel', dest="histDel", default=';', type=str,
             help='The delimeter to be used in the history file. (default: ;')
-        
+
         # mpi stuff
         mpigroup = self.parser.add_mutually_exclusive_group()
         self.parser.add_argument("-mpi", dest="mpi_command", default="mpirun", type=str,
@@ -977,7 +987,7 @@ class ADflowData():
         mpigroup.add_argument("-np", dest="mpi_np", default=None, type=int,
             help="Number of cores to use by mpi.")
         mpigroup.add_argument("-H", dest="mpi_H", default=None, type=str,
-            help="The hosts to use by mpi.") 
+            help="The hosts to use by mpi.")
 
         self.args = self.parser.parse_args(args)
 
@@ -989,15 +999,15 @@ class ADflowData():
             if self.stdout_lines[-1][0:29] == '|  Switching to Aero Problem:':
                 self.ap_name = self.stdout_lines[-1][29:-2].strip()
 
-        
+
         # if len(self.adflow_vars) == 0:
         if self.has_finished:
             if len(self.stdout_lines) <= 3:
                 return
 
-            # figure out if the line is a var description 
+            # figure out if the line is a var description
             var_desc_string = '#---------'
-            if (self.stdout_lines[-4][0:10] == var_desc_string and 
+            if (self.stdout_lines[-4][0:10] == var_desc_string and
                 self.stdout_lines[-3][0:10] == '#  Grid  |' and
                 self.stdout_lines[-2][0:10] == '#  level |' and
                 self.stdout_lines[-1][0:10] == var_desc_string):
@@ -1012,12 +1022,12 @@ class ADflowData():
                 self.adflow_vars = adflow_vars
                 self.adflow_vars_raw = copy.deepcopy(adflow_vars)
             # return
-                    
-        # figure out if this is an iteration ouput 
+
+        # figure out if this is an iteration ouput
         if self.stdout_lines[-1][0:5] == '     ':
             self.parse_adflow_var_values(self.stdout_lines[-1])
 
-            # write the history File 
+            # write the history File
             if self.args.hist:
                 self.write_history()
 
@@ -1031,13 +1041,13 @@ class ADflowData():
                 self.hist_file.close()
                 self.hist_file = None
 
-        
+
         # if adflow has finished, figure out how long it took
         if self.has_finished:
             if self.stdout_lines[-1][0:17] == '| Total Call Time':
                 tmp1 = self.stdout_lines[-1].split(':')[1]
                 self.has_finished_total_call_time = str2number(tmp1.split()[0])
-            
+
             if self.stdout_lines[-1][0:32] == '| Total Function Evaluation Time':
                 tmp1 = self.stdout_lines[-1].split(':')[1]
                 self.has_finished_total_func_time = str2number(tmp1.split()[0])
@@ -1056,19 +1066,19 @@ class ADflowData():
 
             if isinstance(bit, str):
                 self.adflow_vars[adflow_var][-1] = 0.0
-                
+
             # self.adflow_vars[adflow_var].append(str_to_number(bits[n]))
             n += 1
-        
+
         # calculate relative convergence
         if len(self.adflow_vars['totalRes']) > 1:
             rel_conv = self.adflow_vars['totalRes'][0] / self.adflow_vars['totalRes'][-1]
         else:
             rel_conv = 0.0
-        
+
         self.adflow_vars_raw['relRes'].append(rel_conv)
         self.adflow_vars['relRes'].append(rel_conv)
-    
+
     def parse_adflow_var_names(self, stdout_lines):
         # split all lines
         var_bits = []
@@ -1090,15 +1100,15 @@ class ADflowData():
                         adflow_vars[m] += '_' + bit_stripped
                 m += 1
             n += 1
-        
+
         # convert it to a ordered dict that is empty
         adflow_vars_dict = OrderedDict()
         for adflow_var in adflow_vars:
             adflow_vars_dict[adflow_var] = []
-        
+
         # add relative convergence
         adflow_vars_dict['relRes'] = []
-        
+
         return adflow_vars_dict
 
     def write_history(self):
@@ -1118,7 +1128,7 @@ class ADflowData():
             for key in self.adflow_vars_raw.keys():
                 header_str += key + delimeter
             self.hist_file.write(header_str + '\n')
-        
+
         # write iteration
         if len(self.adflow_vars_raw['Iter']) > 0:
             iter_str = ''
@@ -1129,11 +1139,11 @@ class ADflowData():
             # flush only all xx iterations
             if len(self.adflow_vars_raw['Iter']) % self.flush_hist_n == 0:
                 self.hist_file.flush()
-        
+
 
 
 def adflow_plot():
-    try: 
+    try:
         aPlot = ADFlowPlot()
         aPlot.main_loop()
     except:
