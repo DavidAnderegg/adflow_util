@@ -198,7 +198,6 @@ class ADFlowPlot():
     """
 
     def __init__(self):
-        # self.screen = None
         self.commandBuffer = CommandBuffer()
         self.screenBuffer = ScreenBuffer()
         self.adData = ADflowData()
@@ -256,7 +255,7 @@ class ADFlowPlot():
         curses.endwin()
 
     def main_loop(self):
-        self.adData.start_adflow()
+        self.adData.start()
         while not self._exit:
             t0 = time.time()
 
@@ -269,7 +268,7 @@ class ADFlowPlot():
             self.screenBuffer.scr_cols = cols
             self.screenBuffer.scr_rows = rows
             self.screenBuffer.message = self.message
-            self.screenBuffer.command = self.commandBuffer
+            self.screenBuffer.command_active = self.commandBuffer.get_active()
             self.screenBuffer.adflow_stdout_len = len(self.adData.stdout_lines)
             if len(self.adData.adflow_vars) > 0:
                 self.screenBuffer.adflow_iter_len = len(self.adData.adflow_vars['Iter'])
@@ -351,10 +350,7 @@ class ADFlowPlot():
         labels = []
         max_len_label = 0
         for var, color in self._plot_vars.items():
-            # label = [color]
-            # label = (color, '')
             if self._plot_log:
-                # label.append('• log({})'.format(var))
                 txt = '• log({})'.format(var)
             else:
                 txt = '• {}'.format(var)
@@ -923,6 +919,33 @@ class ADflowData():
         self.adflow_vars = OrderedDict()
         self.adflow_vars_raw = OrderedDict()
         self.hist_iteration += 1
+
+    def start(self):
+        """
+        This Kickstarts the whole process
+
+        if the inputfile is a py-file, it gets executed, otherwise it is treated like a log-file
+
+        """
+
+        _, file_extension = os.path.splitext(self.args.inputfile)
+        if file_extension == '.py':
+            self.start_adflow()
+            return
+
+        self.start_logfile()
+
+    def start_logfile(self):
+        self.adflow_process = subprocess.Popen(
+            ['tail', '-f', '-n', '+1', self.args.inputfile],
+            stdout=subprocess.PIPE, stderr=subprocess.PIPE,
+            bufsize=1, close_fds=ON_POSIX)
+
+        # Pipe thread
+        self.adflow_thread = threading.Thread(
+            target=enqueue_output, args=(self.adflow_process.stdout, self.adflow_queue))
+        self.adflow_thread.daemon = True # thread dies with the program
+        self.adflow_thread.start()
 
     def start_adflow(self):
         # run adflow script

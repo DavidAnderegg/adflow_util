@@ -5,7 +5,8 @@ This package provides some convenience functions for [ADflow](https://github.com
 1. Easily calculate a Polar sweep with ADflow.
 2. Automatically create the **output** folder for ADflow.
 3. Automatically restart ADflow if there is a solution available.
-2. Plot realtime ADflow state variables in the terminal.
+4. Plot realtime ADflow state variables in the terminal.
+5. Plot ADflow state variables from a logfile
 
 
 # Usage
@@ -41,9 +42,9 @@ solverOptions = {
 au = ADFLOW_UTIL(aeroOptions, solverOptions, options)
 au.run()
 ```
-The dict **aeroOptions** holds all the variables that normally **baseclasses.AeroProblem** would. If one variable is a list, this is considered the sweep variable. All variables except **coefPol, cosCoefFourier, sinCoefFourier, momentAxis, solverOptions, evalFuncs** can be sweeped. 
+The dict **aeroOptions** holds all the variables that normally **baseclasses.AeroProblem** would. If one variable is a list, this is considered the sweep variable. All variables except **coefPol, cosCoefFourier, sinCoefFourier, momentAxis, solverOptions, evalFuncs** can be sweeped.
 
-The dict **options** holds some ADFLOW_UTIL specific options. More about them can be found 
+The dict **options** holds some ADFLOW_UTIL specific options. More about them can be found
 [here](https://github.com/DavidAnderegg/adflow_util/blob/master/adflow_util/adflow_util.py#L52).
 
 This script will generate a file called *n0012_sweep.out* with this content:
@@ -59,7 +60,7 @@ evalFuncs       cl, cd, cmz
 
 
 
- RESULTS 
+ RESULTS
   alpha          cd          cl         cmz    totalRes    iterTot
 -------  ----------  ----------  ----------  ----------  ---------
       1  0.01011288  0.11602992  0.00066774  0.00085824        633
@@ -73,9 +74,9 @@ It is also possible to have multiple sweep variables. But all must have the same
 
 
 ## adflow_plot
-If this package was installed using pip, the command **adflow_plot** should be available in your terminal. To use it, simply type **adflow_plot -i yourADflowScript.py**. As this utility reads the stdout stream, it should work with all scripts as long as the ADflow option **printIterations** is **True**. 
+If this package was installed using pip, the command **adflow_plot** should be available in your terminal. To use it, simply type **adflow_plot -i yourADflowScript.py**. As this utility reads the stdout stream, it should work with all scripts as long as the ADflow option **printIterations** is **True**.
 
-If you want to parallelize your ADflow calculation, simply add **-np number_of_cores** oder **-H list_of_nodes**. As a default, **mpirun** is used to start mpi. If you have a different installation of mpi, you can change it with **-mpi some_different_mpi_command**. Type **adflow_plot -h** to get a list of all available start options. 
+If you want to parallelize your ADflow calculation, simply add **-np number_of_cores** oder **-H list_of_nodes**. As a default, **mpirun** is used to start mpi. If you have a different installation of mpi, you can change it with **-mpi some_different_mpi_command**. Type **adflow_plot -h** to get a list of all available start options.
 
 
 The output looks something like this:
@@ -88,6 +89,10 @@ To close it, type **q** or **quit**.
 
 Type **h** or **help** to get a list of all commands. type **h a_command** oder **help a_command** to get additional information about this specific command.
 
+### Plot a logfile
+If the inputfile does not end with **.py** it is assumed to be a logfile. The file is read continously with
+the linux-command **tail -f**. This makes it possible to plot the variables allmost in realtime while
+the script is executed on a cluster for example.
 
 
 # Installation
