@@ -27,11 +27,12 @@ class Error(Exception):
     Format the error message in a box to make it clear this
     was a explicitly raised exception.
     """
+
     def __init__(self, message):
         msg = '\n+'+'-'*78+'+'+'\n' + '| adflow_util Error: '
         i = 14
         for word in message.split():
-            if len(word) + i + 1 > 78: # Finish line and start new one
+            if len(word) + i + 1 > 78:  # Finish line and start new one
                 msg += ' '*(78-i)+'|\n| ' + word + ' '
                 i = 1 + len(word)+1
             else:
@@ -88,7 +89,6 @@ class ADFLOW_UTIL:
         self.check_ap_input()
         self.create_solver()
         self.create_aeroProblem()
-        self.write_header()
 
         # run loop
         arrays = self.find_array_aeroOptions()
@@ -112,19 +112,19 @@ class ADFLOW_UTIL:
             for ar in ap_arrays:
                 name += "_{}{}".format(ar, self.aeroOptions[ar][n])
         self.aeroProblem.name = name
-           
+
         # set all AP variables
         if len(ap_arrays) > 0:
             for ar in ap_arrays:
                 setattr(self.aeroProblem, ar, self.aeroOptions[ar][n])
-        
+
          # auto restart solution
         if self.options['autorestart']:
             temp_solverOptions = self.auto_restart()
             # add solver options to existing onesj
             if 'adflow' not in self.aeroProblem.solverOptions:
                 self.aeroProblem.solverOptions = {'adflow': {}}
-            
+
             for key, value in temp_solverOptions.items():
                 self.aeroProblem.solverOptions['adflow'][key] = value
 
@@ -132,20 +132,8 @@ class ADFLOW_UTIL:
         if ADFLOW_AVAIL:
             self.CFDSolver(self.aeroProblem)
 
-        # eval Funcs
-        funcs = self.eval_funcs()
+        self.write_summary()
 
-        # write funcs table data to file
-        if n == 0:
-            self.file.write("\n\n\n RESULTS \n")
-        self.file.write(self.create_funcs_table(funcs, n))
-
-        # flush file after one iteration
-        try:
-            self.file.flush()
-        except AttributeError:
-            pass
-    
     def auto_restart(self):
         # only do this if there is nothing about restart in the solver options
         if 'solRestart' in self.solverOptions:
@@ -154,23 +142,24 @@ class ADFLOW_UTIL:
 
         # disable numbering
         if not self.options['disablenumbersolutions']:
-            raise Error('"disableNumberSolutions" must be True when using "autoRestart"')
+            raise Error(
+                '"disableNumberSolutions" must be True when using "autoRestart"')
 
         temp_solverOptions = dict()
-        
+
         # look for the restart sol file
         out_dir = self.solverOptions['outputDirectory']
         out_file = os.path.join(out_dir, self.aeroProblem.name + '_vol.cgns')
         if os.path.isfile(out_file):
             temp_solverOptions['restartfile'] = out_file
             # temp_solverOptions['solrestart'] = True
-        
+
         # make sure some needed adflow-options are saved
         temp_solverOptions['writevolumesolution'] = True
         temp_solverOptions['solutionprecision'] = 'double'
 
         return temp_solverOptions
-    
+
     def create_funcs_table(self, funcs, n=0):
         header = []
         data = []
@@ -192,12 +181,14 @@ class ADFLOW_UTIL:
             data.append(self.CFDSolver.adflow.iteration.totalrfinal)
             header.append('iterTot')
             data.append(int(self.CFDSolver.adflow.iteration.itertot))
-        
+
         # only write header if it is the first line
         data_string = tabulate([data], headers=header, floatfmt=".8f") + "\n"
-        if n > 0: # strip off header if it is not the first run (this is done for alignment purposes)
-            data_string = data_string.split("\n",2)[2]
-        
+        # strip off header if it is not the first run (this is done for
+        # alignment purposes)
+        if n > 0:
+            data_string = data_string.split("\n", 2)[2]
+
         return data_string
 
     def eval_funcs(self):
@@ -210,7 +201,7 @@ class ADFLOW_UTIL:
                 self.aeroProblem.name + '_cl': 0.1,
                 self.aeroProblem.name + '_cd': 0.005
             }
-        
+
         return funcs
 
     def find_array_aeroOptions(self):
@@ -228,7 +219,7 @@ class ADFLOW_UTIL:
 
         # find all arrays
         arrays = self.find_array_aeroOptions()
-        
+
         # if there are more arrays, check if they are the same length
         if len(arrays) > 1:
             a_length = len(self.aeroOptions[arrays[0]])
@@ -254,7 +245,7 @@ class ADFLOW_UTIL:
                     out_dir = self.solverOptions['outputDirectory']
                     if not os.path.exists(out_dir):
                         os.makedirs(out_dir)
-            
+
             # create the surface families
             if self.options['surfacefamilygroups'] is not None:
                 for group_name, surfaces in self.options['surfacefamilygroups'].items():
@@ -281,18 +272,19 @@ class ADFLOW_UTIL:
                 value_single = value[n]
             else:
                 value_single = value
-            
+
             kwargs[name] = value_single
-        
+
         return kwargs
 
-    def write_header(self):
-        self.file = open(self.options['name'] + '.out', 'w')
+    def write_summary(self):
+        file = open(self.options['name'] + '.out', 'w')
 
-        self.file.write(self.options['name'] + "\n\n")
+        # write options
+        file.write(self.options['name'] + "\n\n")
 
         # write aero options
-        self.file.write('Aero Options\n')
+        file.write('Aero Options\n')
         aero_data = []
         for name, value in self.aeroOptions.items():
             if isinstance(value, list):
@@ -301,16 +293,15 @@ class ADFLOW_UTIL:
                 value_str = str(value)
 
             aero_data.append([name, value_str])
-        self.file.write(tabulate(aero_data))
+        file.write(tabulate(aero_data))
 
-    def __del__(self):
-        try:
-            self.file.close()
-        except AttributeError:
-            pass
-    
-        
-    
+        # write results
+        file.write("\n\n\n RESULTS \n")
+        funcs = self.eval_funcs()
+        file.write(self.create_funcs_table(funcs, n))
+
+        file.close()
+
     def _checkOptions(self, options, defaultOptions):
         """
         Check the solver options against the default ones
@@ -325,7 +316,7 @@ class ADFLOW_UTIL:
         for key in defaultOptions:
             if not key.lower() in optionKeys:
                 self.setOption(key, defaultOptions[key])
-    
+
     def setOption(self, name, value):
         """
         Set the value of the requested option.
@@ -340,17 +331,18 @@ class ADFLOW_UTIL:
         if name.lower() in self.defaultOptionKeys:
             self.options[name.lower()] = value
         else:
-            raise Error('setOption: %s is not a valid adflow_util option.'%name)
+            raise Error(
+                'setOption: %s is not a valid adflow_util option.' % name)
 
 
 if __name__ == '__main__':
     aeroOptions = {
-            'alpha': [10, 20, 40],
-            'reynolds': [1, 1, 1],
-            'T': 288,
-            'mach': 0.1
-        }
-    
+        'alpha': [10, 20, 40],
+        'reynolds': [1, 1, 1],
+        'T': 288,
+        'mach': 0.1
+    }
+
     au = ADFLOW_UTIL(aeroOptions, {}, 'test')
 
     au.run()
