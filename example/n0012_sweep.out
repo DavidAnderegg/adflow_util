@@ -1,0 +1,21 @@
+n0012_sweep
+
+Aero Options
+--------------  -----------
+alpha           1, 2, 3, 4
+reynolds        3000000.0
+mach            0.15
+T               288
+reynoldsLength  1.0
+xRef            0.25
+areaRef         1.0
+chordRef        1.0
+evalFuncs       cl, cd, cmz
+--------------  -----------
+
+
+ RESULTS 
+  alpha          cd          cl         cmz    totalRes    iterTot
+-------  ----------  ----------  ----------  ----------  ---------
+      1  0.01011288  0.11602987  0.00066774  0.00000046         64
+      2  0.01024706  0.23188990  0.00131725  0.00000054         63

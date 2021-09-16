@@ -1,0 +1,3 @@
+[console_scripts]
+adflow_plot = adflow_util:adflow_plot
+
