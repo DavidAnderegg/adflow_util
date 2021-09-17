@@ -18,12 +18,7 @@ except ImportError:
 
 # This values can not be iterated on as they are allowed to be arreys
 is_arraylike = [
-    'coefPol',
-    'cosCoefFourier',
-    'sinCoefFourier',
-    'momentAxis',
-    'solverOptions',
-    'evalFuncs'
+    'coefPol', 'cosCoefFourier', 'sinCoefFourier', 'momentAxis', 'solverOptions', 'evalFuncs'
 ]
 
 
@@ -59,32 +54,25 @@ class ADFLOW_UTIL:
             # The name that is beeing used for the '.out' file and AP
             "name": 'default',
 
-            # If the AeroPoint should be reseted for every new calculation.
-            # This can be usefull in cases with small changes where the NK
-            # solver kicks in before the residual can climb cause NK to diverge
+            # If the AeroPoint should be reseted for every new calculation. This can be usefull in
+            # cases with small changes where the NK solver kicks in before the residual can climb
+            # cause NK to diverge
             "resetAP": False,
 
-            # If ADflow automatically should restart if a restart-file with the
-            # exact Name is found.  the script looks in the output folder for
-            # the restart file "disableNumberSolutions" must be set to "True"
-            # to use this function
+            # If ADflow automatically should restart if a restart-file with the exact Name is found.
+            # the script looks in the output folder for the restart file
+            # "disableNumberSolutions" must be set to "True" to use this function
             "autoRestart": True,
 
-            # this automatically disables numbering of solutions. Usually it is
-            # okey, because adflow_util picks a unique name by its own
+            # this automatically disables numbering of solutions. Usually it is okey, because
+            # adflow_util picks a unique name by its own
             "disableNumberSolutions": True,
 
             # This allows to define some familygroupes.
             # it takes a dict in the from:
             # {"group": ["surface1", "surface2"]}
-            # adflow_util basically iterates through this dict and runs
-            # "CFDSolver.addFamilyGroup()"
+            # adflow_util basically iterates through this dict and runs "CFDSolver.addFamilyGroup()"
             "surfaceFamilyGroups": None,
-
-            # This allows to execute stuff on the solver itself before and
-            # after running.
-            "preRunCallback": None,
-            "postRunCallback": None,
         }
 
         # Get keys for every option
@@ -142,13 +130,7 @@ class ADFLOW_UTIL:
 
         # solve
         if ADFLOW_AVAIL:
-            if self.options["preruncallback"] is not None:
-                self.options["preruncallback"](self.CFDSolver, n)
-
             self.CFDSolver(self.aeroProblem)
-
-            if self.options["postruncallback"] is not None:
-                self.options["postruncallback"](self.CFDSolver, n)
 
         self.write_summary()
 
@@ -316,7 +298,7 @@ class ADFLOW_UTIL:
         # write results
         file.write("\n\n\n RESULTS \n")
         funcs = self.eval_funcs()
-        file.write(self.create_funcs_table(funcs))
+        file.write(self.create_funcs_table(funcs, n))
 
         file.close()
 
