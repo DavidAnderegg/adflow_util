@@ -148,7 +148,7 @@ class ADFLOW_UTIL:
             if self.options["postruncallback"] is not None:
                 self.options["postruncallback"](self.CFDSolver, n)
 
-        self.write_summary()
+        self.write_summary(n)
 
     def auto_restart(self):
         # only do this if there is nothing about restart in the solver options
@@ -201,13 +201,8 @@ class ADFLOW_UTIL:
         # add it to the global data array
         self.funcs_data.append(data)
 
-        # only write header if it is the first line
         data_string = tabulate(
             self.funcs_data, headers=header, floatfmt=".8f") + "\n"
-        # strip off header if it is not the first run (this is done for
-        # alignment purposes)
-        if n > 0:
-            data_string = data_string.split("\n", 2)[2]
 
         return data_string
 
@@ -297,7 +292,7 @@ class ADFLOW_UTIL:
 
         return kwargs
 
-    def write_summary(self):
+    def write_summary(self, n=0):
         file = open(self.options['name'] + '.out', 'w')
 
         # write options
@@ -318,7 +313,7 @@ class ADFLOW_UTIL:
         # write results
         file.write("\n\n\n RESULTS \n")
         funcs = self.eval_funcs()
-        file.write(self.create_funcs_table(funcs))
+        file.write(self.create_funcs_table(funcs, n))
 
         file.close()
 
