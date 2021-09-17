@@ -52,8 +52,6 @@ class ADFLOW_UTIL:
     def __init__(self, aeroOptions, solverOptions, options=None):
         self.aeroOptions = aeroOptions
         self.solverOptions = solverOptions
-        # self.name = name
-        # self.reset_ap = reset_ap
 
         defaultOptions = {
             # The name that is beeing used for the '.out' file and AP
@@ -93,6 +91,8 @@ class ADFLOW_UTIL:
         self._checkOptions(options, defaultOptions)
 
         self.CFDSolver = None
+
+        self.funcs_data = []
 
     def run(self):
         # init stuff
@@ -198,8 +198,12 @@ class ADFLOW_UTIL:
             header.append('iterTot')
             data.append(int(self.CFDSolver.adflow.iteration.itertot))
 
+        # add it to the global data array
+        self.funcs_data.append(data)
+
         # only write header if it is the first line
-        data_string = tabulate([data], headers=header, floatfmt=".8f") + "\n"
+        data_string = tabulate(
+            self.funcs_data, headers=header, floatfmt=".8f") + "\n"
         # strip off header if it is not the first run (this is done for
         # alignment purposes)
         if n > 0:
