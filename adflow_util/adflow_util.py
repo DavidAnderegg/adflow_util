@@ -66,7 +66,7 @@ class ADFLOW_UTIL:
             # exact Name is found.  the script looks in the output folder for
             # the restart file "disableNumberSolutions" must be set to "True"
             # to use this function
-            "autoRestart": True,
+            "autoRestart": False,
 
             # this automatically disables numbering of solutions. Usually it is
             # okey, because adflow_util picks a unique name by its own
