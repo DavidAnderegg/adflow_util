@@ -66,7 +66,7 @@ class ADFLOW_UTIL:
             # exact Name is found.  the script looks in the output folder for
             # the restart file "disableNumberSolutions" must be set to "True"
             # to use this function
-            "autoRestart": True,
+            "autoRestart": False,
 
             # this automatically disables numbering of solutions. Usually it is
             # okey, because adflow_util picks a unique name by its own
@@ -194,9 +194,9 @@ class ADFLOW_UTIL:
         # add solver information
         if ADFLOW_AVAIL:
             header.append('totalRes')
-            data.append(self.CFDSolver.adflow.iteration.totalrfinal)
+            data.append(copy.copy(self.CFDSolver.adflow.iteration.totalrfinal))
             header.append('iterTot')
-            data.append(int(self.CFDSolver.adflow.iteration.itertot))
+            data.append(copy.copy(int(self.CFDSolver.adflow.iteration.itertot)))
 
         # add it to the global data array
         self.funcs_data.append(data)
