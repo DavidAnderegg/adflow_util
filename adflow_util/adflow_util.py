@@ -194,9 +194,9 @@ class ADFLOW_UTIL:
         # add solver information
         if ADFLOW_AVAIL:
             header.append('totalRes')
-            data.append(self.CFDSolver.adflow.iteration.totalrfinal)
+            data.append(copy.copy(self.CFDSolver.adflow.iteration.totalrfinal))
             header.append('iterTot')
-            data.append(int(self.CFDSolver.adflow.iteration.itertot))
+            data.append(copy.copy(int(self.CFDSolver.adflow.iteration.itertot)))
 
         # add it to the global data array
         self.funcs_data.append(data)
