@@ -78,7 +78,11 @@ class ADFLOW_UTIL:
             "surfaceFamilyGroups": None,
 
             # This allows to execute stuff on the solver itself before and
-            # after running.
+            # after running. Both need to be in this form:
+            # def callbackt(Solver, AeroProblem, n) where:
+            #   Solver:         ADflow solver Instance
+            #   AeroProblem:    The Aeroproblem instance
+            #   n:              Which run it is (0-based)
             "preRunCallback": None,
             "postRunCallback": None,
         }
@@ -141,12 +145,16 @@ class ADFLOW_UTIL:
         # solve
         if ADFLOW_AVAIL:
             if self.options["preruncallback"] is not None:
-                self.options["preruncallback"](self.CFDSolver, n)
+                self.options["preruncallback"](
+                        self.CFDSolver, self.aeroProblem, n
+                )
 
             self.CFDSolver(self.aeroProblem)
 
             if self.options["postruncallback"] is not None:
-                self.options["postruncallback"](self.CFDSolver, n)
+                self.options["postruncallback"](
+                        self.CFDSolver, self.aeroProblem, n
+                )
 
         self.write_summary(n)
 

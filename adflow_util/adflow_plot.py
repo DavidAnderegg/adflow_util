@@ -995,7 +995,7 @@ class ADflowData():
             help="The ADflow script to run.")
 
         # history file
-        self.parser.add_argument("-hist", dest="hist", default=True,  type=str2bool,
+        self.parser.add_argument("-hist", dest="hist", default=False,  type=str2bool,
             help="Should be false if no history file should be written.")
         self.parser.add_argument("-histFile", dest="histFile", default=None, type=str,
             help="The .csv file where the convergence history should be written. " \
